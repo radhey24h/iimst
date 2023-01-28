@@ -1,0 +1,22 @@
+
+
+  /****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP (1000) [Id]
+      ,[Subject]
+  FROM [radheyhc_IIMSTDB].[dbo].[SubjectInfo]
+  /****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP (1000) [RoleID]
+      ,[RoleName]
+  FROM [radheyhc_IIMSTDB].[dbo].[UserRoles]
+
+  /****** Script for SelectTopNRows command from SSMS  ******/
+SELECT TOP (1000) [Id]
+      ,[UserName]
+      ,[Password]
+      ,[EmailAddress]
+      ,[RoleID]
+      ,[IsActive]
+      ,[CreatedDate]
+      ,[CreatedBy]
+  FROM [radheyhc_IIMSTDB].[dbo].[Users]
+
