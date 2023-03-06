@@ -3,7 +3,7 @@ import axios from "axios";
 import { Student } from "../../interfaces/Student";
 
 interface StudentState {
-    students: Student[] | null;
+    students: Student[] ;
     loading: boolean;
     student: Student | null;
     errors: any;

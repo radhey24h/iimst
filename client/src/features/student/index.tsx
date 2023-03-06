@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react'
-import { useAppDispatch, useAppSelector } from '../../store/store';
+import { useAppDispatch } from '../../store/store';
+import StudentGrid from './components/grid';
 import { getStudents } from './studentSlice';
 
 export const StudentPage = () => {
@@ -13,14 +14,12 @@ export const StudentPage = () => {
     initApp();
   }, [])
 
-  const { students } = useAppSelector((state) => state.student);
 
-  return (<>
-    {students && students.map(x => {
-      <div>
-        {x.name}
-      </div>
-    })}
-  </>
+  return (
+    <>
+      <h2>Student Details</h2>
+
+      <StudentGrid />
+    </>
   )
 }

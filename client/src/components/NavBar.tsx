@@ -14,9 +14,9 @@ import MenuItem from '@mui/material/MenuItem';
 import { Link } from 'react-router-dom';
 
 const pages = [
-  {title: 'Home', route: "/"}, 
-  {title: 'Games', route: "/games"},
-  {title: 'Add Game', route: "/createGame"}
+  { title: 'Home', route: "/" },
+  { title: 'Games', route: "/games" },
+  { title: 'Add Game', route: "/createGame" }
 ];
 const settings = ['Profile', 'Account', 'Dashboard', 'Logout', 'Login'];
 
@@ -81,8 +81,8 @@ const NavBar = () => {
                 display: { xs: 'block', md: 'none' },
               }}
             >
-              {pages.map((page) => (
-                <Link to={page.route}>
+              {pages.map((page, index) => (
+                <Link key={index} to={page.route}>
                   <MenuItem key={page.route} onClick={handleCloseNavMenu}>
                     <Typography fontWeight={600} textAlign="center">{page.title}</Typography>
                   </MenuItem>
@@ -134,8 +134,8 @@ const NavBar = () => {
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
-              {settings.map((setting) => (
-                <MenuItem key={setting} onClick={handleCloseUserMenu}>
+              {settings.map((setting, index) => (
+                <MenuItem key={index} onClick={handleCloseUserMenu}>
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}

@@ -15,7 +15,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <NavBar />
+      {/* <NavBar /> */}
       <Routes>
         <Route path="/" element={<StudentPage />} />
         {/* <Route path="/" element={<GamesPage/>} />

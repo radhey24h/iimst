@@ -3,7 +3,7 @@ import Student from "../models/Student";
 
 export const getStudents = async (req: Request, res: Response) => {
     const students = await Student.find();
-    console.log(students)
+    console.log(students);
     try {
         return res.status(200).json(students);
     } catch (error) {
