@@ -10,12 +10,24 @@ import SingleGamePage from './features/games/SingleGamePage';
 import CreateGamePage from './features/games/CreateGamePage';
 import EditGamePage from './features/games/EditGamePage';
 import { StudentPage } from './features/student';
+import EducationNavbar from './components/EducationNavbar';
+import EducationalBanner from './components/EducationalBanner';
+import WhyEducationHub from './components/NewWhy';
+import Footer from './components/Footer';
+import TopTrendingCourses from './components/TopTrendingCourse';
+import EducationalAffiliations from './components/LogoCard';
 
 function App() {
 
   return (
     <BrowserRouter>
       {/* <NavBar /> */}
+      <EducationNavbar />
+      <EducationalBanner />
+      <WhyEducationHub />
+      <TopTrendingCourses />
+      <EducationalAffiliations />
+      <Footer />
       <Routes>
         <Route path="/" element={<StudentPage />} />
         {/* <Route path="/" element={<GamesPage/>} />
