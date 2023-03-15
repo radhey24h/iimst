@@ -78,7 +78,7 @@ const TopTrendingCourses: React.FC = () => {
   return (
     <Container maxWidth="xl">
     <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography margin={"4rem"} align="center" variant="h4" gutterBottom>
         Top Trending Courses
       </Typography>
       <Box sx={{ overflowX: "auto", mb: 2 }}>

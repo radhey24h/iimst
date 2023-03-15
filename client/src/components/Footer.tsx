@@ -22,8 +22,8 @@ import EmailIcon from "@mui/icons-material/Email";
 const Footer = () => {
   return (
     // <CustomFooter>
-    <Container maxWidth="xl">
-      <Grid container spacing={2}>
+    <Container maxWidth="xl" >
+      <Grid margin={"1rem"} container spacing={2} color="primary">
         <Grid item xs={12} md={3}>
           <Typography variant="h6" component="h2" gutterBottom>
             About Us

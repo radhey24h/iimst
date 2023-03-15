@@ -91,7 +91,7 @@ const EducationalAffiliations: React.FC = () => {
   return (
     <Container maxWidth="xl">
     <Box sx={{ flexGrow: 1 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography margin={"4rem"} align="center" variant="h4" gutterBottom>
         Educational Affiliations and Associations
       </Typography>
       <Box sx={{ mb: 2 }}>

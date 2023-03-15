@@ -5,8 +5,8 @@ import cardImage2 from "./cardImage2.png";
 
 const WhyEducationHub = () => {
   return (
-    <Container maxWidth="xl">
-     <Typography variant="h4" align="center" gutterBottom>
+    <Container maxWidth="xl" >
+     <Typography margin={"4rem"} variant="h4" align="center" gutterBottom>
           Why Choose Education IIMST?
         </Typography>
     <Grid container spacing={2}>
