@@ -3,22 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { api, type Course } from '@/lib/api';
+import { api, getBranchesByCourse, type Course, type Branch } from '@/lib/api';
 
 export default function NewStudentPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [form, setForm] = useState({
-    enrollmentNo: '',
     fullName: '',
     fatherName: '',
-    motherName: '',
     dateOfBirth: '',
     email: '',
     courseId: '',
-    program: '',
-    branch: '',
-    currentSemester: '',
+    branchId: '',
+    admissionYear: '',
     phone: '',
     address: '',
   });
@@ -29,6 +27,14 @@ export default function NewStudentPage() {
     api<Course[]>('/courses').then(setCourses).catch(() => setCourses([]));
   }, []);
 
+  useEffect(() => {
+    if (!form.courseId) {
+      setBranches([]);
+      return;
+    }
+    getBranchesByCourse(form.courseId).then(setBranches).catch(() => setBranches([]));
+  }, [form.courseId]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -37,17 +43,14 @@ export default function NewStudentPage() {
       await api('/students', {
         method: 'POST',
         body: JSON.stringify({
-          enrollmentNo: form.enrollmentNo.trim() || undefined,
           fullName: form.fullName.trim(),
           fatherName: form.fatherName.trim() || undefined,
-          motherName: form.motherName.trim() || undefined,
-          dateOfBirth: form.dateOfBirth || undefined,
-          email: form.email.trim() || undefined,
+          dob: form.dateOfBirth || undefined,
+          emailId: form.email.trim() || undefined,
           courseId: form.courseId || undefined,
-          program: form.program.trim() || undefined,
-          branch: form.branch.trim() || undefined,
-          currentSemester: form.currentSemester ? parseInt(form.currentSemester, 10) : undefined,
-          phone: form.phone.trim() || undefined,
+          branchId: form.branchId || undefined,
+          admissionYear: form.admissionYear ? parseInt(form.admissionYear, 10) : undefined,
+          phoneNumber: form.phone.trim() || undefined,
           address: form.address.trim() || undefined,
         }),
       });
@@ -63,18 +66,9 @@ export default function NewStudentPage() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Add Student</h1>
       <p className="text-gray-600 mb-4">
-        Login: <strong>User ID = Enrollment number</strong>, <strong>Password = Enrollment number</strong>. Leave Enrollment No blank to auto-generate (YYYYMMDD + 3 digits).
+        Enrollment number is auto-generated. Login for the student: <strong>User ID = Enrollment No</strong>, <strong>Password = Enrollment No</strong> (share after student is created).
       </p>
       <form onSubmit={handleSubmit} className="max-w-md space-y-4 bg-white p-6 rounded-xl border border-gray-200">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Enrollment No (optional — auto-generated if blank)</label>
-          <input
-            value={form.enrollmentNo}
-            onChange={(e) => setForm((f) => ({ ...f, enrollmentNo: e.target.value }))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            placeholder="Leave blank to auto-generate"
-          />
-        </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Full name</label>
           <input
@@ -89,14 +83,6 @@ export default function NewStudentPage() {
           <input
             value={form.fatherName}
             onChange={(e) => setForm((f) => ({ ...f, fatherName: e.target.value }))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Mother&apos;s name</label>
-          <input
-            value={form.motherName}
-            onChange={(e) => setForm((f) => ({ ...f, motherName: e.target.value }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           />
         </div>
@@ -122,7 +108,7 @@ export default function NewStudentPage() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
           <select
             value={form.courseId}
-            onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
+            onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value, branchId: '' }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           >
             <option value="">Select</option>
@@ -132,28 +118,32 @@ export default function NewStudentPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Program</label>
-          <input
-            value={form.program}
-            onChange={(e) => setForm((f) => ({ ...f, program: e.target.value }))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
-          <input
-            value={form.branch}
-            onChange={(e) => setForm((f) => ({ ...f, branch: e.target.value }))}
+          <select
+            value={form.branchId}
+            onChange={(e) => setForm((f) => ({ ...f, branchId: e.target.value }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          />
+            disabled={!form.courseId}
+          >
+            <option value="">
+              {!form.courseId ? 'Select course first' : branches.length === 0 ? 'No branches — add under Branches' : 'Select'}
+            </option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
+            ))}
+          </select>
+          {form.courseId && branches.length === 0 && (
+            <p className="text-amber-600 text-xs mt-1">Add branches for this course under Admin → Branches, then try again.</p>
+          )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Current semester</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Admission year</label>
           <input
             type="number"
-            min={1}
-            value={form.currentSemester}
-            onChange={(e) => setForm((f) => ({ ...f, currentSemester: e.target.value }))}
+            min={2000}
+            max={2030}
+            value={form.admissionYear}
+            onChange={(e) => setForm((f) => ({ ...f, admissionYear: e.target.value }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           />
         </div>

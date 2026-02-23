@@ -43,15 +43,16 @@ export default function NewCoursePage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Max semester</label>
-          <select
+          <label className="block text-sm font-medium text-gray-700 mb-1">Number of semesters</label>
+          <input
+            type="number"
+            min={1}
+            max={20}
             value={form.maxSemester}
-            onChange={(e) => setForm((f) => ({ ...f, maxSemester: parseInt(e.target.value, 10) }))}
+            onChange={(e) => setForm((f) => ({ ...f, maxSemester: parseInt(e.target.value, 10) || 1 }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          >
-            <option value={6}>6 (Diploma)</option>
-            <option value={8}>8 (Bachelor)</option>
-          </select>
+          />
+          <p className="text-xs text-gray-500 mt-1">e.g. 4 (MBA), 6 (Diploma), 8 (BBA/Bachelor). Any value 1–20.</p>
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex gap-2">

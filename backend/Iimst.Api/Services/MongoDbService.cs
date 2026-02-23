@@ -9,7 +9,9 @@ public class MongoDbService
     public IMongoCollection<User> Users => Database.GetCollection<User>("users");
     public IMongoCollection<Student> Students => Database.GetCollection<Student>("students");
     public IMongoCollection<Course> Courses => Database.GetCollection<Course>("courses");
+    public IMongoCollection<Branch> Branches => Database.GetCollection<Branch>("branches");
     public IMongoCollection<Subject> Subjects => Database.GetCollection<Subject>("subjects");
+    public IMongoCollection<Result> Results => Database.GetCollection<Result>("results");
     public IMongoCollection<SemesterResult> SemesterResults => Database.GetCollection<SemesterResult>("semesterResults");
     public IMongoCollection<SubjectExam> SubjectExams => Database.GetCollection<SubjectExam>("subjectExams");
     public IMongoCollection<ExamAttempt> ExamAttempts => Database.GetCollection<ExamAttempt>("examAttempts");

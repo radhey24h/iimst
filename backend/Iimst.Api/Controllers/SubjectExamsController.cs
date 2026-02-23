@@ -88,7 +88,7 @@ public class SubjectExamsController : ControllerBase
         SubjectId = e.SubjectId,
         SubjectCode = subject?.Code,
         SubjectName = subject?.Name,
-        ExamLink = e.ExamLink,
+        ExamLink = e.ExamLink ?? "",
         MinPassingMarks = e.MinPassingMarks,
         MaxMarks = e.MaxMarks,
         IsActive = e.IsActive

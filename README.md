@@ -12,17 +12,31 @@ Portal for **Infinity Institute of Management Science & Technology** with:
 
 ## Quick start
 
-### MongoDB (Docker)
+### Docker (full stack, recommended)
 
-Run MongoDB in a container:
+Run from the **iimst** directory only so Docker Compose uses the fixed project name and creates exactly three containers (no extras):
 
 ```bash
-docker-compose up -d
+cd iimst
+docker compose up -d --build
+```
+
+- **Frontend + API:** http://localhost:3110 (API at `/api`, Swagger at `/api/swagger`)
+- **MongoDB:** localhost:27017 (root/example, authSource=admin, db iimst)
+
+Containers: `iimst-mongodb`, `iimst-backend`, `iimst-frontend`. Do not run the same stack from another directory or with `docker run` on the same image, to avoid duplicate/unnamed containers.
+
+### MongoDB only (Docker)
+
+If you run backend and frontend locally (not in Docker):
+
+```bash
+docker compose up -d mongodb
 ```
 
 MongoDB will be available at `localhost:27017`. The API uses database `iimst` and the credentials in `docker-compose.yml` (root/example) — see `appsettings.json` → `MongoDb:ConnectionString`.
 
-**You must start MongoDB before running the API.** If you see a timeout or "connection refused" when running the API, start MongoDB first: from the project root run `docker-compose up -d`.
+**You must start MongoDB before running the API.** If you see a timeout or "connection refused" when running the API, start MongoDB first: from the project root run `docker compose up -d mongodb`.
 
 ### Backend
 
@@ -58,7 +72,7 @@ Copy `frontend/.env.example` to `frontend/.env` and set `NEXT_PUBLIC_API_URL` if
 
 ## Structure
 
-- `docker-compose.yml` — MongoDB service (port 27017)
+- `docker-compose.yml` — Full stack: MongoDB, backend, frontend (project name `iimst`; containers: `iimst-mongodb`, `iimst-backend`, `iimst-frontend`). Port 3110 for app, 27017 for MongoDB.
 - `backend/Iimst.Api` — .NET API (Auth, Students, Users, Subjects, Results, SubjectExams, ExamAttempts, Enquiries); MongoDB
 - `frontend` — Next.js app
   - `/` — Public home, about, contact; applications hub (Student Portal, Admin)

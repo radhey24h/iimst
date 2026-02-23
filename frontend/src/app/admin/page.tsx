@@ -2,10 +2,12 @@ import Link from 'next/link';
 
 export default function AdminDashboard() {
   const links = [
-    { href: '/admin/students', label: 'Students', desc: 'Add, edit, delete student details' },
-    { href: '/admin/subjects', label: 'Subjects', desc: 'Manage diploma subjects' },
-    { href: '/admin/results', label: 'Results', desc: 'Manage semester results' },
-    { href: '/admin/exams', label: 'Exam Links', desc: 'Set exam link & min passing marks per subject' },
+    { href: '/admin/courses', label: 'Courses', desc: 'Add, edit courses (e.g. BBA, Diploma)' },
+    { href: '/admin/branches', label: 'Branches', desc: 'Manage branches per course' },
+    { href: '/admin/subjects', label: 'Subjects', desc: 'Manage subjects per course, branch and semester (exam link, min/max marks)' },
+    { href: '/admin/students', label: 'Students', desc: 'Add, edit student details and assign course/branch' },
+    { href: '/admin/results', label: 'Results', desc: 'View results and add bulk result entry' },
+    { href: '/admin/enquiries', label: 'Enquiries', desc: 'View enquiries from students and visitors' },
   ];
 
   return (

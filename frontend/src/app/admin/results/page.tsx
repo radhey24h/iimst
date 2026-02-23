@@ -1,187 +1,176 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { api, type Result, type Student, type Subject } from '@/lib/api';
+import { useCallback, useEffect, useState } from 'react';
+import { api, getStudentsPaginated, type Student, type Course } from '@/lib/api';
+
+const PAGE_SIZE = 20;
+
+function openEntryInNewWindow(studentId: string) {
+  const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/admin/results/entry?studentId=${encodeURIComponent(studentId)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
 
 export default function AdminResultsPage() {
-  const [results, setResults] = useState<Result[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ studentId: '', subjectId: '', semester: 1, marksObtained: '', maxMarks: '100', grade: '' });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
 
-  useEffect(() => {
-    Promise.all([
-      api<Result[]>('/results'),
-      api<Student[]>('/students?page=1&pageSize=500'),
-      api<Subject[]>('/subjects'),
-    ])
-      .then(([r, s, sub]) => {
-        setResults(r);
-        setStudents(s);
-        setSubjects(sub);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+  const loadPage = useCallback(async (pageNum: number, searchTerm: string, courseId: string) => {
+    setLoading(true);
+    try {
+      const { students: list, total: totalCount } = await getStudentsPaginated(
+        pageNum,
+        PAGE_SIZE,
+        searchTerm || undefined,
+        courseId || undefined
+      );
+      setStudents(list);
+      setTotal(totalCount);
+    } catch {
+      setStudents([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    setSaving(true);
-    try {
-      await api('/results', {
-        method: 'POST',
-        body: JSON.stringify({
-          studentId: form.studentId || undefined,
-          subjectId: form.subjectId || undefined,
-          semester: form.semester,
-          marksObtained: parseFloat(form.marksObtained),
-          maxMarks: parseFloat(form.maxMarks),
-          grade: form.grade || undefined,
-        }),
-      });
-      const list = await api<Result[]>('/results');
-      setResults(list);
-      setShowForm(false);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
-    } finally {
-      setSaving(false);
-    }
-  }
+  useEffect(() => {
+    setPage(1);
+    loadPage(1, search, courseFilter);
+  }, [courseFilter]);
+
+  useEffect(() => {
+    api<Course[]>('/courses')
+      .then(setCourses)
+      .catch(() => setCourses([]));
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const handleSearch = () => {
+    setPage(1);
+    loadPage(1, search, courseFilter);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const p = Math.max(1, Math.min(newPage, totalPages));
+    setPage(p);
+    loadPage(p, search, courseFilter);
+  };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-gray-900">Results</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-iimst-orange hover:bg-iimst-orange-dark text-white px-4 py-2 rounded-lg font-medium"
-        >
-          Add Result
-        </button>
-      </div>
-      {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 p-6 bg-white rounded-xl border border-gray-200 max-w-md space-y-4">
-          <h2 className="font-semibold">New result</h2>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
-            <select
-              value={form.studentId}
-              onChange={(e) => setForm((f) => ({ ...f, studentId: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
-            >
-              <option value="">Select</option>
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>{s.enrollmentNo} — {s.fullName}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-            <select
-              value={form.subjectId}
-              onChange={(e) => setForm((f) => ({ ...f, subjectId: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
-            >
-              <option value="">Select</option>
-              {subjects.map((s) => (
-                <option key={s.id} value={s.id}>{s.name} ({s.minPassMarks}/{s.maxMarks})</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={courseFilter}
+            onChange={(e) => setCourseFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-iimst-orange focus:border-transparent text-sm"
+          >
+            <option value="">All courses</option>
+            {courses.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <div className="min-w-[200px] max-w-xs flex-1 flex gap-2">
+            <label htmlFor="results-search" className="sr-only">Search students</label>
             <input
-              type="number"
-              min={1}
-              value={form.semester}
-              onChange={(e) => setForm((f) => ({ ...f, semester: parseInt(e.target.value, 10) }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              id="results-search"
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Name or enrollment..."
+              className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-iimst-orange focus:border-transparent text-sm"
             />
-          </div>
-          <div className="flex gap-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Marks obtained</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.marksObtained}
-                onChange={(e) => setForm((f) => ({ ...f, marksObtained: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max marks</label>
-              <input
-                type="number"
-                step="0.01"
-                value={form.maxMarks}
-                onChange={(e) => setForm((f) => ({ ...f, maxMarks: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Grade (optional)</label>
-            <input
-              value={form.grade}
-              onChange={(e) => setForm((f) => ({ ...f, grade: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          <div className="flex gap-2">
-            <button type="submit" disabled={saving} className="bg-iimst-orange text-white px-4 py-2 rounded-lg font-medium disabled:opacity-50">
-              Save
-            </button>
-            <button type="button" onClick={() => setShowForm(false)} className="border border-gray-300 px-4 py-2 rounded-lg font-medium">
-              Cancel
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium text-gray-700 text-sm"
+            >
+              Search
             </button>
           </div>
-        </form>
-      )}
-      {loading ? (
-        <div className="text-center py-12">Loading...</div>
-      ) : results.length === 0 ? (
-        <p className="text-gray-500">No results yet.</p>
-      ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-left min-w-[600px]">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="px-4 py-3 font-medium text-gray-700">Student</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Subject</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Sem</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Marks</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Grade</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Pass</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((r) => (
-                <tr key={r.id} className="border-b border-gray-100">
-                  <td className="px-4 py-3">{r.enrollmentNo} — {r.studentName}</td>
-                  <td className="px-4 py-3">{r.subjectCode} {r.subjectName}</td>
-                  <td className="px-4 py-3">{r.semesterRoman || r.semester}</td>
-                  <td className="px-4 py-3">{r.marksObtained} / {r.maxMarks}</td>
-                  <td className="px-4 py-3">{r.grade || '-'}</td>
-                  <td className="px-4 py-3">{r.isPassed ? 'Yes' : 'No'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
-      )}
+      </div>
+
+      <section>
+        <p className="text-sm text-gray-500 mb-4">
+          Click a row to open <strong>Enter / update results</strong> in a new window. This keeps the list manageable when many students are present.
+        </p>
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Loading...</div>
+        ) : students.length === 0 ? (
+          <p className="text-gray-500">No students found.</p>
+        ) : (
+          <>
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+              <table className="w-full text-left min-w-[500px]">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50/80">
+                    <th className="px-5 py-3.5 font-medium text-gray-700">Enrollment</th>
+                    <th className="px-5 py-3.5 font-medium text-gray-700">Name</th>
+                    <th className="px-5 py-3.5 font-medium text-gray-700">Course</th>
+                    <th className="px-5 py-3.5 font-medium text-gray-700">Branch</th>
+                    <th className="px-5 py-3.5 font-medium text-gray-700 w-20 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((s) => (
+                    <tr
+                      key={s.id}
+                      onClick={() => openEntryInNewWindow(s.id)}
+                      className="border-b border-gray-100 transition-colors cursor-pointer hover:bg-gray-50"
+                    >
+                      <td className="px-5 py-3.5">{s.enrollmentNo}</td>
+                      <td className="px-5 py-3.5 font-medium text-gray-900">{s.fullName}</td>
+                      <td className="px-5 py-3.5 text-gray-600">{s.courseName || '—'}</td>
+                      <td className="px-5 py-3.5 text-gray-600">{s.branchName || '—'}</td>
+                      <td className="px-5 py-3.5 text-center">
+                        <span className="text-iimst-orange text-sm font-medium">Open →</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 px-1">
+                <p className="text-sm text-gray-500">
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, total)} of {total}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage <= 1}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Previous
+                  </button>
+                  <span className="px-3 py-1.5 text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage >= totalPages}
+                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </section>
     </div>
   );
 }

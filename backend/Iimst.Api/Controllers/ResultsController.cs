@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using Iimst.Api.Data;
 using Iimst.Api.Helpers;
+using Iimst.Api.Models;
 using Iimst.Api.Services;
 
 namespace Iimst.Api.Controllers;
@@ -12,12 +13,17 @@ namespace Iimst.Api.Controllers;
 public class ResultsController : ControllerBase
 {
     private readonly MongoDbService _db;
+    private readonly IResultService _resultService;
 
-    public ResultsController(MongoDbService db) => _db = db;
+    public ResultsController(MongoDbService db, IResultService resultService)
+    {
+        _db = db;
+        _resultService = resultService;
+    }
 
     [HttpGet]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<ResultDto>>> GetAll([FromQuery] string? studentId, [FromQuery] string? courseId, [FromQuery] int? semester)
+    public async Task<ActionResult<List<LegacyResultDto>>> GetAll([FromQuery] string? studentId, [FromQuery] string? courseId, [FromQuery] int? semester)
     {
         var builder = Builders<SemesterResult>.Filter;
         var filter = builder.Empty;
@@ -34,7 +40,7 @@ public class ResultsController : ControllerBase
         var studentMap = students.ToDictionary(s => s.Id);
         var subjectMap = subjects.ToDictionary(s => s.Id);
         var courseMap = courses.ToDictionary(c => c.Id);
-        var dtos = list.Select(r => ToDto(r,
+        var dtos = list.Select(r => ToLegacyDto(r,
             studentMap.GetValueOrDefault(r.StudentId),
             subjectMap.GetValueOrDefault(r.SubjectId),
             courseMap.GetValueOrDefault(r.CourseId ?? ""))).ToList();
@@ -43,7 +49,7 @@ public class ResultsController : ControllerBase
 
     [HttpGet("student/{studentId}")]
     [Authorize]
-    public async Task<ActionResult<List<ResultDto>>> GetByStudent(string studentId)
+    public async Task<ActionResult<List<ResultDto>>> GetByStudent(string studentId, [FromQuery] int? semester)
     {
         var student = await _db.Students.Find(s => s.Id == studentId).FirstOrDefaultAsync();
         if (student == null) return NotFound();
@@ -52,19 +58,96 @@ public class ResultsController : ControllerBase
             var uid = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (student.UserId != uid) return Forbid();
         }
-        var list = await _db.SemesterResults.Find(r => r.StudentId == studentId).SortBy(r => r.Semester).ToListAsync();
+        var builder = Builders<Result>.Filter;
+        var filter = builder.Eq(r => r.StudentId, studentId);
+        if (semester.HasValue) filter &= builder.Eq(r => r.Semester, semester.Value);
+        var list = await _db.Results.Find(filter).SortBy(r => r.Semester).ThenBy(r => r.SubjectId).ToListAsync();
         var subjectIds = list.Select(r => r.SubjectId).Distinct().ToList();
-        var courseIds = list.Select(r => r.CourseId).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
-        var subjects = await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync();
-        var courses = courseIds.Count > 0 ? await _db.Courses.Find(c => courseIds.Contains(c.Id)).ToListAsync() : new List<Course>();
+        var subjects = subjectIds.Count > 0 ? await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync() : new List<Subject>();
         var subjectMap = subjects.ToDictionary(s => s.Id);
-        var courseMap = courses.ToDictionary(c => c.Id);
-        return Ok(list.Select(r => ToDto(r, student, subjectMap.GetValueOrDefault(r.SubjectId), courseMap.GetValueOrDefault(r.CourseId ?? ""))).ToList());
+        var dtos = list.Select(r => new ResultDto
+        {
+            SubjectId = r.SubjectId,
+            SubjectName = subjectMap.GetValueOrDefault(r.SubjectId)?.Name ?? r.SubjectId,
+            Semester = r.Semester,
+            SemesterRoman = RomanHelper.ToRoman(r.Semester),
+            MarksObtained = r.MarksObtained,
+            Grade = r.Grade,
+            IsPassed = r.IsPassed
+        }).ToList();
+        return Ok(dtos);
     }
 
-    /// <summary>Result-cum-Detailed Marks Card for one semester (attachment schema).</summary>
+    /// <summary>Returns list of semester numbers for which the student has results (from Results or SemesterResults). Dynamic: no cache.</summary>
+    [HttpGet("student/{studentId}/semesters")]
+    [Authorize]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+    public async Task<ActionResult<int[]>> GetSemestersWithResults(string studentId)
+    {
+        var student = await _db.Students.Find(s => s.Id == studentId).FirstOrDefaultAsync();
+        if (student == null) return NotFound();
+        if (User.IsInRole("Student"))
+        {
+            var uid = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (student.UserId != uid) return Forbid();
+        }
+        if (string.Equals(student.Status, "Inactive", StringComparison.OrdinalIgnoreCase))
+            return Ok(Array.Empty<int>());
+        var fromResults = (await _db.Results.Find(r => r.StudentId == studentId).Project(r => r.Semester).ToListAsync()).Distinct();
+        var fromSemesterResults = (await _db.SemesterResults.Find(r => r.StudentId == studentId).Project(r => r.Semester).ToListAsync()).Distinct();
+        var combined = fromResults.Union(fromSemesterResults).OrderBy(s => s).ToArray();
+        return Ok(combined);
+    }
+
+    [HttpGet("student/{studentId}/has-results")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<object>> HasResultsForSemester(string studentId, [FromQuery] int semester)
+    {
+        var count = await _db.Results.CountDocumentsAsync(
+            Builders<Result>.Filter.And(
+                Builders<Result>.Filter.Eq(r => r.StudentId, studentId),
+                Builders<Result>.Filter.Eq(r => r.Semester, semester)));
+        return Ok(new { hasResults = count > 0 });
+    }
+
+    [HttpPost("bulk")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<ResultDto>>> BulkInsert([FromBody] ResultBulkRequestDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.StudentId) || dto.Marks == null || dto.Marks.Count == 0)
+            return BadRequest("StudentId and Marks list are required");
+        try
+        {
+            var marksList = dto.Marks.Select(m => (m.SubjectId, m.MarksObtained)).ToList();
+            var result = await _resultService.BulkInsertResultsAsync(dto.StudentId, dto.Semester, marksList);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpGet("student/{studentId}/legacy")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<LegacyResultDto>>> GetByStudentLegacy(string studentId)
+    {
+        var student = await _db.Students.Find(s => s.Id == studentId).FirstOrDefaultAsync();
+        if (student == null) return NotFound();
+        var list = await _db.SemesterResults.Find(r => r.StudentId == studentId).SortBy(r => r.Semester).ToListAsync();
+        var subjectIds = list.Select(r => r.SubjectId).Distinct().ToList();
+        var subjects = await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync();
+        var subjectMap = subjects.ToDictionary(s => s.Id);
+        Course? course = null;
+        if (!string.IsNullOrEmpty(student.CourseId))
+            course = await _db.Courses.Find(c => c.Id == student.CourseId).FirstOrDefaultAsync();
+        return Ok(list.Select(r => ToLegacyDto(r, student, subjectMap.GetValueOrDefault(r.SubjectId), course)).ToList());
+    }
+
+    /// <summary>Result-cum-Detailed Marks Card for one semester. Prefers Results (admin bulk entry) so all subjects entered by admin are returned; falls back to SemesterResults (legacy) when Results is empty. No cache.</summary>
     [HttpGet("student/{studentId}/marks-card")]
     [Authorize]
+    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public async Task<ActionResult<MarksCardDto>> GetMarksCard(string studentId, [FromQuery] int semester)
     {
         var student = await _db.Students.Find(s => s.Id == studentId).FirstOrDefaultAsync();
@@ -74,43 +157,82 @@ public class ResultsController : ControllerBase
             var uid = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (student.UserId != uid) return Forbid();
         }
-        var results = await _db.SemesterResults.Find(r => r.StudentId == studentId && r.Semester == semester)
+        if (string.Equals(student.Status, "Inactive", StringComparison.OrdinalIgnoreCase))
+            return StatusCode(403, new { message = "Results are only available for active student accounts." });
+        // Prefer Results (admin bulk entry) so student sees all subjects entered by admin. Fall back to SemesterResults (legacy) only when Results is empty.
+        var results = await _db.Results.Find(r => r.StudentId == studentId && r.Semester == semester)
             .SortBy(r => r.SubjectId).ToListAsync();
-        if (results.Count == 0) return NotFound("No results for this semester.");
-        var subjectIds = results.Select(r => r.SubjectId).Distinct().ToList();
-        var subjects = await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync();
-        var subjectMap = subjects.ToDictionary(s => s.Id);
-        Course? course = null;
-        var courseId = results.First().CourseId;
-        if (!string.IsNullOrEmpty(courseId))
-            course = await _db.Courses.Find(c => c.Id == courseId).FirstOrDefaultAsync();
-        decimal totalMax = 0, totalPass = 0, totalSecured = 0;
-        var rows = new List<MarksCardRowDto>();
-        foreach (var r in results)
+        List<MarksCardRowDto> rows;
+        decimal totalMax, totalPass, totalSecured;
+        bool allPassed;
+        string? courseIdForName = null;
+        if (results.Count > 0)
         {
-            var sub = subjectMap.GetValueOrDefault(r.SubjectId);
-            var maxMarks = r.MaxMarks;
-            var passMarks = sub?.MinPassMarks ?? (maxMarks * 0.4m);
-            totalMax += maxMarks;
-            totalPass += passMarks;
-            totalSecured += r.MarksObtained;
-            rows.Add(new MarksCardRowDto
+            courseIdForName = student.CourseId;
+            var subjectIds = results.Select(r => r.SubjectId).Distinct().ToList();
+            var subjects = await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync();
+            var subjectMap = subjects.ToDictionary(s => s.Id);
+            totalMax = 0; totalPass = 0; totalSecured = 0;
+            rows = new List<MarksCardRowDto>();
+            foreach (var r in results)
             {
-                SubjectName = sub?.Name ?? r.SubjectId,
-                MaximumMarks = maxMarks,
-                PassMarks = passMarks,
-                MarksSecured = r.MarksObtained,
-                IsPassed = r.IsPassed
-            });
+                var sub = subjectMap.GetValueOrDefault(r.SubjectId);
+                var maxMarks = sub?.MaxMarks ?? 100;
+                var passMarks = sub?.MinPassMarks ?? (maxMarks * 0.4m);
+                totalMax += maxMarks; totalPass += passMarks; totalSecured += r.MarksObtained;
+                rows.Add(new MarksCardRowDto
+                {
+                    SubjectName = sub?.Name ?? r.SubjectId,
+                    MaximumMarks = maxMarks,
+                    PassMarks = passMarks,
+                    MarksSecured = r.MarksObtained,
+                    IsPassed = r.IsPassed
+                });
+            }
+            allPassed = results.All(r => r.IsPassed);
         }
-        var allPassed = results.All(r => r.IsPassed);
+        else
+        {
+            var semesterResults = await _db.SemesterResults.Find(r => r.StudentId == studentId && r.Semester == semester)
+                .SortBy(r => r.SubjectId).ToListAsync();
+            if (semesterResults.Count == 0) return NotFound("No results for this semester.");
+            var subjectIds = semesterResults.Select(r => r.SubjectId).Distinct().ToList();
+            var subjects = await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync();
+            var subjectMap = subjects.ToDictionary(s => s.Id);
+            courseIdForName = semesterResults.First().CourseId;
+            totalMax = 0; totalPass = 0; totalSecured = 0;
+            rows = new List<MarksCardRowDto>();
+            foreach (var r in semesterResults)
+            {
+                var sub = subjectMap.GetValueOrDefault(r.SubjectId);
+                var maxMarks = r.MaxMarks;
+                var passMarks = sub?.MinPassMarks ?? (maxMarks * 0.4m);
+                totalMax += maxMarks; totalPass += passMarks; totalSecured += r.MarksObtained;
+                rows.Add(new MarksCardRowDto
+                {
+                    SubjectName = sub?.Name ?? r.SubjectId,
+                    MaximumMarks = maxMarks,
+                    PassMarks = passMarks,
+                    MarksSecured = r.MarksObtained,
+                    IsPassed = r.IsPassed
+                });
+            }
+            allPassed = semesterResults.All(r => r.IsPassed);
+        }
+        Course? course = null;
+        Branch? branch = null;
+        if (!string.IsNullOrEmpty(courseIdForName))
+            course = await _db.Courses.Find(c => c.Id == courseIdForName).FirstOrDefaultAsync();
+        if (!string.IsNullOrEmpty(student.BranchId))
+            branch = await _db.Branches.Find(b => b.Id == student.BranchId).FirstOrDefaultAsync();
         return Ok(new MarksCardDto
         {
             StudentName = student.FullName,
             FatherName = student.FatherName,
-            DateOfBirth = student.DateOfBirth,
+            DateOfBirth = student.DOB,
             EnrollmentNo = student.EnrollmentNo,
-            CourseName = course?.Name ?? student.Program,
+            CourseName = course?.Name,
+            BranchName = branch?.Name,
             Semester = semester,
             SemesterRoman = RomanNumerals.ToRoman(semester),
             Rows = rows,
@@ -148,7 +270,7 @@ public class ResultsController : ControllerBase
         Course? course = null;
         if (!string.IsNullOrEmpty(r.CourseId))
             course = await _db.Courses.Find(c => c.Id == r.CourseId).FirstOrDefaultAsync();
-        return CreatedAtAction(nameof(GetAll), null, ToDto(r, student, subject, course));
+        return CreatedAtAction(nameof(GetAll), null, ToLegacyDto(r, student, subject, course));
     }
 
     [HttpPut("{id}")]
@@ -168,7 +290,7 @@ public class ResultsController : ControllerBase
         Course? course = null;
         if (!string.IsNullOrEmpty(r.CourseId))
             course = await _db.Courses.Find(c => c.Id == r.CourseId).FirstOrDefaultAsync();
-        return Ok(ToDto(r, student, subject, course));
+        return Ok(ToLegacyDto(r, student, subject, course));
     }
 
     [HttpDelete("{id}")]
@@ -180,7 +302,7 @@ public class ResultsController : ControllerBase
         return NoContent();
     }
 
-    static ResultDto ToDto(SemesterResult r, Student? student, Subject? subject, Course? course) => new ResultDto
+    static LegacyResultDto ToLegacyDto(SemesterResult r, Student? student, Subject? subject, Course? course) => new LegacyResultDto
     {
         Id = r.Id,
         StudentId = r.StudentId,
@@ -201,7 +323,7 @@ public class ResultsController : ControllerBase
     };
 }
 
-public class ResultDto
+public class LegacyResultDto
 {
     public string Id { get; set; } = "";
     public string StudentId { get; set; } = "";
@@ -245,6 +367,7 @@ public class MarksCardDto
     public DateTime? DateOfBirth { get; set; }
     public string EnrollmentNo { get; set; } = "";
     public string? CourseName { get; set; }
+    public string? BranchName { get; set; }
     public int Semester { get; set; }
     public string SemesterRoman { get; set; } = "";
     public List<MarksCardRowDto> Rows { get; set; } = new();

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import logo from '@/assets/logo/iimst_logo.jpg';
 import { auth } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -65,7 +66,7 @@ export default function ChangePasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <Link href="/" className="flex items-center gap-2 mb-6">
-        <Image src="/iimst_logo.jpg" alt="IIMST" width={40} height={40} className="rounded-full object-cover" />
+        <Image src={logo} alt="IIMST" width={40} height={40} className="rounded-full object-cover" />
         <span className="font-bold text-iimst-orange">Change Password</span>
       </Link>
       <div className="w-full max-w-md bg-white rounded-xl border border-gray-200 p-8">

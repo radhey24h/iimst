@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api, type Student, type SubjectExam, type ExamAttempt } from '@/lib/api';
 
 export default function StudentExamsPage() {
@@ -38,9 +39,7 @@ export default function StudentExamsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Subject-wise Exams</h1>
-      <p className="text-gray-600 mb-6">
-        Each subject has an exam link. Minimum passing marks are shown. After attempting, submit your marks to record the result.
-      </p>
+     
       {exams.length === 0 ? (
         <p className="text-gray-500">No exams available at the moment.</p>
       ) : (

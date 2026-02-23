@@ -2,6 +2,7 @@ import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
 import Image from 'next/image';
 import Link from 'next/link';
+import logo from '@/assets/logo/iimst_logo.jpg';
 
 export default function AboutPage() {
   return (
@@ -18,7 +19,7 @@ export default function AboutPage() {
               IIMST students get access to a unified student portal. After login, you can view and download your digital ID card, check semester-wise results and take subject-wise online examinations. The institute manages admissions, study material and exam schedules, with dedicated support for queries.
             </p>
             <div className="flex items-center gap-4 p-6 bg-iimst-orange-50 rounded-xl">
-              <Image src="/iimst_logo.jpg" alt="IIMST" width={80} height={80} className="rounded-full object-cover" />
+              <Image src={logo} alt="IIMST" width={80} height={80} className="rounded-full object-cover" />
               <div>
                 <p className="text-lg font-semibold text-gray-800">तमसो मा ज्योतिर्गमय</p>
                 <p className="text-gray-600 text-sm">From darkness, lead me to light.</p>

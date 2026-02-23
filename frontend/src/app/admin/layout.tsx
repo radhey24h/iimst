@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import logo from '@/assets/logo/iimst_logo.jpg';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { token, logout, isAdmin } = useAuth();
@@ -28,10 +29,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const nav = [
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/courses', label: 'Courses' },
-    { href: '/admin/students', label: 'Students' },
+    { href: '/admin/branches', label: 'Branches' },
     { href: '/admin/subjects', label: 'Subjects' },
+    { href: '/admin/students', label: 'Students' },
     { href: '/admin/results', label: 'Results' },
-    { href: '/admin/exams', label: 'Exam Links' },
+    { href: '/admin/enquiries', label: 'Enquiries' },
   ];
 
   return (
@@ -39,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-4 border-b border-gray-100">
           <Link href="/admin" className="flex items-center gap-2">
-            <Image src="/iimst_logo.jpg" alt="IIMST" width={36} height={36} className="rounded-full object-cover" />
+            <Image src={logo} alt="IIMST" width={36} height={36} className="rounded-full object-cover" />
             <span className="font-bold text-iimst-orange">Admin</span>
           </Link>
         </div>
@@ -57,7 +59,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="p-2 border-t border-gray-100">
-          <Link href="/" className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">Home</Link>
           <Link href="/change-password" className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">Change password</Link>
           <button onClick={() => { logout(); router.push('/'); }} className="block w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm">
             Logout

@@ -34,11 +34,14 @@ public class StudentsController : ControllerBase
             .ToListAsync();
         var userIds = list.Select(s => s.UserId).Distinct().ToList();
         var courseIds = list.Select(s => s.CourseId).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+        var branchIds = list.Select(s => s.BranchId).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
         var users = await _db.Users.Find(u => userIds.Contains(u.Id)).ToListAsync();
         var courses = courseIds.Count > 0 ? await _db.Courses.Find(c => courseIds.Contains(c.Id)).ToListAsync() : new List<Course>();
+        var branches = branchIds.Count > 0 ? await _db.Branches.Find(b => branchIds.Contains(b.Id)).ToListAsync() : new List<Branch>();
         var userMap = users.ToDictionary(u => u.Id);
         var courseMap = courses.ToDictionary(c => c.Id);
-        var dtos = list.Select(s => ToDto(s, userMap.GetValueOrDefault(s.UserId), courseMap.GetValueOrDefault(s.CourseId ?? ""))).ToList();
+        var branchMap = branches.ToDictionary(b => b.Id);
+        var dtos = list.Select(s => ToDto(s, userMap.GetValueOrDefault(s.UserId), courseMap.GetValueOrDefault(s.CourseId ?? ""), branchMap.GetValueOrDefault(s.BranchId ?? ""))).ToList();
         Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(dtos);
     }
@@ -56,9 +59,12 @@ public class StudentsController : ControllerBase
         }
         var user = await _db.Users.Find(u => u.Id == student.UserId).FirstOrDefaultAsync();
         Course? course = null;
+        Branch? branch = null;
         if (!string.IsNullOrEmpty(student.CourseId))
             course = await _db.Courses.Find(c => c.Id == student.CourseId).FirstOrDefaultAsync();
-        return Ok(ToDto(student, user, course));
+        if (!string.IsNullOrEmpty(student.BranchId))
+            branch = await _db.Branches.Find(b => b.Id == student.BranchId).FirstOrDefaultAsync();
+        return Ok(ToDto(student, user, course, branch));
     }
 
     [HttpGet("by-user")]
@@ -71,9 +77,29 @@ public class StudentsController : ControllerBase
         if (student == null) return NotFound("Student profile not found");
         var user = await _db.Users.Find(u => u.Id == uid).FirstOrDefaultAsync();
         Course? course = null;
+        Branch? branch = null;
         if (!string.IsNullOrEmpty(student.CourseId))
             course = await _db.Courses.Find(c => c.Id == student.CourseId).FirstOrDefaultAsync();
-        return Ok(ToDto(student, user, course));
+        if (!string.IsNullOrEmpty(student.BranchId))
+            branch = await _db.Branches.Find(b => b.Id == student.BranchId).FirstOrDefaultAsync();
+        return Ok(ToDto(student, user, course, branch));
+    }
+
+    [HttpGet("by-course")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<StudentDto>>> GetByCourse([FromQuery] string courseId)
+    {
+        if (string.IsNullOrWhiteSpace(courseId)) return BadRequest("courseId required");
+        var list = await _db.Students.Find(s => s.CourseId == courseId).SortBy(s => s.EnrollmentNo).ToListAsync();
+        var userIds = list.Select(s => s.UserId).Distinct().ToList();
+        var branchIds = list.Select(s => s.BranchId).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+        var users = await _db.Users.Find(u => userIds.Contains(u.Id)).ToListAsync();
+        var branches = branchIds.Count > 0 ? await _db.Branches.Find(b => branchIds.Contains(b.Id)).ToListAsync() : new List<Branch>();
+        var userMap = users.ToDictionary(u => u.Id);
+        var course = await _db.Courses.Find(c => c.Id == courseId).FirstOrDefaultAsync();
+        var branchMap = branches.ToDictionary(b => b.Id);
+        var dtos = list.Select(s => ToDto(s, userMap.GetValueOrDefault(s.UserId), course, branchMap.GetValueOrDefault(s.BranchId ?? ""))).ToList();
+        return Ok(dtos);
     }
 
     [HttpPost]
@@ -98,11 +124,12 @@ public class StudentsController : ControllerBase
         var existingUser = await _db.Users.Find(u => u.UserName == enrollmentNo).FirstOrDefaultAsync();
         if (existingUser != null) return BadRequest("Enrollment number already used as login");
 
+        var email = !string.IsNullOrWhiteSpace(dto.EmailId) ? dto.EmailId.Trim() : (enrollmentNo + "@iimst.co.in");
         var user = new User
         {
             Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
             UserName = enrollmentNo,
-            Email = !string.IsNullOrWhiteSpace(dto.Email) ? dto.Email.Trim() : (enrollmentNo + "@iimst.co.in"),
+            Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(enrollmentNo),
             Role = "Student",
             CreatedAt = DateTime.UtcNow
@@ -115,23 +142,26 @@ public class StudentsController : ControllerBase
             UserId = user.Id,
             EnrollmentNo = enrollmentNo,
             FullName = dto.FullName.Trim(),
-            FatherName = dto.FatherName?.Trim(),
-            MotherName = dto.MotherName?.Trim(),
-            DateOfBirth = dto.DateOfBirth,
-            Email = dto.Email?.Trim(),
-            Address = dto.Address?.Trim(),
-            Phone = dto.Phone?.Trim(),
+            FatherName = dto.FatherName?.Trim().NullIfEmpty(),
             CourseId = dto.CourseId?.Trim().NullIfEmpty(),
-            Program = dto.Program?.Trim().NullIfEmpty(),
-            Branch = dto.Branch?.Trim().NullIfEmpty(),
-            CurrentSemester = dto.CurrentSemester,
+            BranchId = dto.BranchId?.Trim().NullIfEmpty(),
+            AdmissionYear = dto.AdmissionYear,
+            DOB = dto.DOB,
+            EmailId = dto.EmailId?.Trim().NullIfEmpty(),
+            PhoneNumber = dto.PhoneNumber?.Trim().NullIfEmpty(),
+            Address = dto.Address?.Trim().NullIfEmpty(),
             PhotoUrl = dto.PhotoUrl?.Trim().NullIfEmpty(),
-            BloodGroup = dto.BloodGroup?.Trim().NullIfEmpty(),
+            Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status.Trim(),
             CreatedAt = DateTime.UtcNow
         };
         await _db.Students.InsertOneAsync(student);
-        var course = !string.IsNullOrEmpty(student.CourseId) ? await _db.Courses.Find(c => c.Id == student.CourseId).FirstOrDefaultAsync() : null;
-        return CreatedAtAction(nameof(GetById), new { id = student.Id }, ToDto(student, user, course));
+        Course? course = null;
+        Branch? branch = null;
+        if (!string.IsNullOrEmpty(student.CourseId))
+            course = await _db.Courses.Find(c => c.Id == student.CourseId).FirstOrDefaultAsync();
+        if (!string.IsNullOrEmpty(student.BranchId))
+            branch = await _db.Branches.Find(b => b.Id == student.BranchId).FirstOrDefaultAsync();
+        return CreatedAtAction(nameof(GetById), new { id = student.Id }, ToDto(student, user, course, branch));
     }
 
     [HttpPut("{id}")]
@@ -146,25 +176,26 @@ public class StudentsController : ControllerBase
             if (student.UserId != uid) return Forbid();
         }
         if (dto.FullName != null) student.FullName = dto.FullName;
-        if (dto.FatherName != null) student.FatherName = dto.FatherName;
-        if (dto.MotherName != null) student.MotherName = dto.MotherName;
-        if (dto.DateOfBirth.HasValue) student.DateOfBirth = dto.DateOfBirth;
-        if (dto.Email != null) student.Email = dto.Email;
-        if (dto.Address != null) student.Address = dto.Address;
-        if (dto.Phone != null) student.Phone = dto.Phone;
+        if (dto.FatherName != null) student.FatherName = dto.FatherName.NullIfEmpty();
         if (dto.CourseId != null) student.CourseId = dto.CourseId.NullIfEmpty();
-        if (dto.Program != null) student.Program = dto.Program.NullIfEmpty();
-        if (dto.Branch != null) student.Branch = dto.Branch;
-        if (dto.CurrentSemester.HasValue) student.CurrentSemester = dto.CurrentSemester;
+        if (dto.BranchId != null) student.BranchId = dto.BranchId.NullIfEmpty();
+        if (dto.AdmissionYear.HasValue) student.AdmissionYear = dto.AdmissionYear;
+        if (dto.DOB.HasValue) student.DOB = dto.DOB;
+        if (dto.EmailId != null) student.EmailId = dto.EmailId.NullIfEmpty();
+        if (dto.PhoneNumber != null) student.PhoneNumber = dto.PhoneNumber.NullIfEmpty();
+        if (dto.Address != null) student.Address = dto.Address.NullIfEmpty();
         if (dto.PhotoUrl != null) student.PhotoUrl = dto.PhotoUrl.NullIfEmpty();
-        if (dto.BloodGroup != null) student.BloodGroup = dto.BloodGroup.NullIfEmpty();
+        if (dto.Status != null) student.Status = dto.Status;
         student.UpdatedAt = DateTime.UtcNow;
         await _db.Students.ReplaceOneAsync(s => s.Id == id, student);
         var user = await _db.Users.Find(u => u.Id == student.UserId).FirstOrDefaultAsync();
         Course? course = null;
+        Branch? branch = null;
         if (!string.IsNullOrEmpty(student.CourseId))
             course = await _db.Courses.Find(c => c.Id == student.CourseId).FirstOrDefaultAsync();
-        return Ok(ToDto(student, user, course));
+        if (!string.IsNullOrEmpty(student.BranchId))
+            branch = await _db.Branches.Find(b => b.Id == student.BranchId).FirstOrDefaultAsync();
+        return Ok(ToDto(student, user, course, branch));
     }
 
     [HttpDelete("{id}")]
@@ -173,6 +204,8 @@ public class StudentsController : ControllerBase
     {
         var student = await _db.Students.Find(s => s.Id == id).FirstOrDefaultAsync();
         if (student == null) return NotFound();
+        await _db.Results.DeleteManyAsync(r => r.StudentId == id);
+        await _db.SemesterResults.DeleteManyAsync(r => r.StudentId == id);
         await _db.Students.DeleteOneAsync(s => s.Id == id);
         await _db.Users.DeleteOneAsync(u => u.Id == student.UserId);
         return NoContent();
@@ -186,7 +219,7 @@ public class StudentsController : ControllerBase
         return yyyymmdd + three;
     }
 
-    static StudentDto ToDto(Student s, User? user, Course? course) => new StudentDto
+    static StudentDto ToDto(Student s, User? user, Course? course, Branch? branch) => new StudentDto
     {
         Id = s.Id,
         UserId = s.UserId,
@@ -194,18 +227,20 @@ public class StudentsController : ControllerBase
         EnrollmentNo = s.EnrollmentNo,
         FullName = s.FullName,
         FatherName = s.FatherName,
-        MotherName = s.MotherName,
-        DateOfBirth = s.DateOfBirth,
-        Email = s.Email,
-        Address = s.Address,
-        Phone = s.Phone,
         CourseId = s.CourseId,
         CourseName = course?.Name,
-        Program = s.Program,
-        Branch = s.Branch,
-        CurrentSemester = s.CurrentSemester,
+        BranchId = s.BranchId,
+        BranchName = branch?.Name,
+        AdmissionYear = s.AdmissionYear,
+        DOB = s.DOB,
+        DateOfBirth = s.DOB,
+        EmailId = s.EmailId,
+        Email = s.EmailId,
+        PhoneNumber = s.PhoneNumber,
+        Phone = s.PhoneNumber,
+        Address = s.Address,
         PhotoUrl = s.PhotoUrl,
-        BloodGroup = s.BloodGroup,
+        Status = s.Status,
         CreatedAt = s.CreatedAt
     };
 }
@@ -218,53 +253,50 @@ public class StudentDto
     public string EnrollmentNo { get; set; } = "";
     public string FullName { get; set; } = "";
     public string? FatherName { get; set; }
-    public string? MotherName { get; set; }
-    public DateTime? DateOfBirth { get; set; }
-    public string? Email { get; set; }
-    public string? Address { get; set; }
-    public string? Phone { get; set; }
     public string? CourseId { get; set; }
     public string? CourseName { get; set; }
-    public string? Program { get; set; }
-    public string? Branch { get; set; }
-    public int? CurrentSemester { get; set; }
+    public string? BranchId { get; set; }
+    public string? BranchName { get; set; }
+    public int? AdmissionYear { get; set; }
+    public DateTime? DOB { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public string? EmailId { get; set; }
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Phone { get; set; }
+    public string? Address { get; set; }
     public string? PhotoUrl { get; set; }
-    public string? BloodGroup { get; set; }
+    public string Status { get; set; } = "Active";
     public DateTime CreatedAt { get; set; }
 }
 
 public class StudentCreateDto
 {
-    /// <summary>Optional. If empty, autogenerated as YYYYMMDD + 3-digit random.</summary>
     public string? EnrollmentNo { get; set; }
     public string FullName { get; set; } = "";
     public string? FatherName { get; set; }
-    public string? MotherName { get; set; }
-    public DateTime? DateOfBirth { get; set; }
-    public string? Email { get; set; }
-    public string? Address { get; set; }
-    public string? Phone { get; set; }
     public string? CourseId { get; set; }
-    public string? Program { get; set; }
-    public string? Branch { get; set; }
-    public int? CurrentSemester { get; set; }
+    public string? BranchId { get; set; }
+    public int? AdmissionYear { get; set; }
+    public DateTime? DOB { get; set; }
+    public string? EmailId { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Address { get; set; }
     public string? PhotoUrl { get; set; }
-    public string? BloodGroup { get; set; }
+    public string? Status { get; set; }
 }
 
 public class StudentUpdateDto
 {
     public string? FullName { get; set; }
     public string? FatherName { get; set; }
-    public string? MotherName { get; set; }
-    public DateTime? DateOfBirth { get; set; }
-    public string? Email { get; set; }
-    public string? Address { get; set; }
-    public string? Phone { get; set; }
     public string? CourseId { get; set; }
-    public string? Program { get; set; }
-    public string? Branch { get; set; }
-    public int? CurrentSemester { get; set; }
+    public string? BranchId { get; set; }
+    public int? AdmissionYear { get; set; }
+    public DateTime? DOB { get; set; }
+    public string? EmailId { get; set; }
+    public string? PhoneNumber { get; set; }
+    public string? Address { get; set; }
     public string? PhotoUrl { get; set; }
-    public string? BloodGroup { get; set; }
+    public string? Status { get; set; }
 }

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
 import Image from 'next/image';
+import logo from '@/assets/logo/iimst_logo.jpg';
 import EnquiryForm from '@/components/EnquiryForm';
 import ScrollToHash from '@/components/ScrollToHash';
 
@@ -60,7 +61,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link href="/login" className="bg-iimst-orange hover:bg-iimst-orange-dark text-white px-6 py-3 rounded-md font-semibold transition-colors">
-                    Portal Login
+                    Student Login
                   </Link>
                   <Link href="/courses" className="bg-white/10 hover:bg-white/20 text-white border border-white/40 px-6 py-3 rounded-md font-semibold transition-colors">
                     View Courses
@@ -209,7 +210,7 @@ export default function HomePage() {
         <section className="py-14 px-4 bg-iimst-orange-50 border-t border-iimst-orange/10">
           <div className="container mx-auto max-w-4xl text-center">
             <div className="flex justify-center mb-6">
-              <Image src="/iimst_logo.jpg" alt="IIMST" width={72} height={72} className="rounded-full object-cover border-2 border-iimst-orange/20" />
+              <Image src={logo} alt="IIMST" width={72} height={72} className="rounded-full object-cover border-2 border-iimst-orange/20" />
             </div>
             <p className="text-xl font-semibold text-gray-800 mb-2">तमसो मा ज्योतिर्गमय</p>
             <p className="text-gray-600 text-sm mb-6">From darkness, lead me to light.</p>

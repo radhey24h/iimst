@@ -1,4 +1,9 @@
-version: '3.8'
+# IIMST full stack: MongoDB + .NET backend + Next.js frontend (nginx in frontend image)
+# Run from this directory only: docker compose up -d --build
+# Open: http://localhost:3110 (frontend and API at /api)
+# MongoDB: localhost:27017 (root/example, authSource=admin, db iimst)
+# Fixed project name so only these containers are created (no extra/unnamed ones).
+name: iimst
 
 services:
   mongodb:
@@ -13,6 +18,46 @@ services:
       MONGO_INITDB_DATABASE: iimst
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend/Iimst.Api
+      dockerfile: Dockerfile
+    container_name: iimst-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:5000
+      MongoDb__ConnectionString: mongodb://root:example@mongodb:27017/?authSource=admin
+      MongoDb__DatabaseName: iimst
+      Jwt__Key: IimstSecretKeyForJwtTokenGeneration2024!
+      Jwt__Issuer: IimstApi
+      Jwt__Audience: IimstPortal
+      Cors__Origins: http://localhost:3110,http://127.0.0.1:3110
+    expose:
+      - "5000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: /api
+    container_name: iimst-frontend
+    restart: unless-stopped
+    ports:
+      - "3110:3110"
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: production
 
 volumes:
   mongodb_data:

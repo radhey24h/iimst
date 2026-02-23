@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import logo from '@/assets/logo/iimst_logo.jpg';
 import { auth } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -15,7 +16,28 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/';
-  const { login } = useAuth();
+  const { login, user, token } = useAuth();
+
+  useEffect(() => {
+    if (token == null) return;
+    if (user?.role === 'Admin') {
+      router.replace(redirect.startsWith('/admin') ? redirect : '/admin');
+      return;
+    }
+    if (user?.role === 'Student') {
+      router.replace(redirect.startsWith('/student') ? redirect : '/student');
+      return;
+    }
+    if (token) router.replace(redirect);
+  }, [token, user, redirect, router]);
+
+  if (token && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-600">Redirecting...</p>
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -45,7 +67,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-iimst-orange-50 to-orange-100/50 px-4">
       <Link href="/" className="flex items-center gap-2 mb-8">
-        <Image src="/iimst_logo.jpg" alt="IIMST" width={48} height={48} className="rounded-full object-cover" />
+        <Image src={logo} alt="IIMST" width={48} height={48} className="rounded-full object-cover" />
         <span className="font-bold text-iimst-orange-dark">IIMST Portal</span>
       </Link>
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-100 p-8">

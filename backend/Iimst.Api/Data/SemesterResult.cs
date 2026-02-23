@@ -8,9 +8,8 @@ public class SemesterResult
     [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
     public string Id { get; set; } = "";
     public string StudentId { get; set; } = "";
-    public string? CourseId { get; set; }
+    public string CourseId { get; set; } = "";
     public string SubjectId { get; set; } = "";
-    /// <summary>Semester number 1–8 (display as Roman I–VIII).</summary>
     public int Semester { get; set; }
     public decimal MarksObtained { get; set; }
     public decimal MaxMarks { get; set; }

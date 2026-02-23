@@ -33,11 +33,11 @@ export default function AdminSubjectsPage() {
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="px-4 py-3 font-medium text-gray-700">Course</th>
+                <th className="px-4 py-3 font-medium text-gray-700">Branch</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Code</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Name</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Sem</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Pass / Max</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Credits</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
               </tr>
             </thead>
@@ -45,11 +45,11 @@ export default function AdminSubjectsPage() {
               {subjects.map((s) => (
                 <tr key={s.id} className="border-b border-gray-100">
                   <td className="px-4 py-3">{s.courseName || '-'}</td>
+                  <td className="px-4 py-3">{s.branchName || '-'}</td>
                   <td className="px-4 py-3">{s.code}</td>
                   <td className="px-4 py-3">{s.name}</td>
                   <td className="px-4 py-3">{s.semester ?? '-'}</td>
                   <td className="px-4 py-3">{s.minPassMarks} / {s.maxMarks}</td>
-                  <td className="px-4 py-3">{s.credits}</td>
                   <td className="px-4 py-3">
                     <Link href={`/admin/subjects/${s.id}`} className="text-iimst-orange hover:underline">Edit</Link>
                   </td>

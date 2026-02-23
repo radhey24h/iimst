@@ -3,8 +3,12 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
+import logo from '@/assets/logo/iimst_logo.jpg';
 
-const mainNav = [
+type NavLink = { label: string; href: string };
+type NavItem = NavLink | { label: string; children: NavLink[] };
+
+const mainNav: NavItem[] = [
   { label: 'Home', href: '/' },
   {
     label: 'About Us',
@@ -24,6 +28,10 @@ const mainNav = [
   { label: 'Contact', href: '/contact' },
 ];
 
+function hasChildren(item: NavItem): item is NavItem & { children: NavLink[] } {
+  return Array.isArray((item as { children?: NavLink[] }).children);
+}
+
 export default function PublicHeader() {
   const [open, setOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -35,9 +43,9 @@ export default function PublicHeader() {
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex flex-wrap items-center justify-between py-2 gap-2">
             <div className="flex flex-wrap items-center gap-6">
-              <a href="tel:+917410078235" className="hover:text-iimst-orange-light transition-colors">+91 7410078235</a>
+              <a href="tel:+918595229157" className="hover:text-iimst-orange-light transition-colors">+91 8595229157</a>
               <a href="mailto:info@iimst.co.in" className="hover:text-iimst-orange-light transition-colors">info@iimst.co.in</a>
-              <span className="hidden sm:inline text-gray-400">Mon - Sat: 8:00 AM - 6:00 PM</span>
+              <span className="hidden sm:inline text-gray-400">Mon - Sat: 6:00 AM - 6:00 PM</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-gray-400 hidden md:inline">Follow Us</span>
@@ -53,28 +61,28 @@ export default function PublicHeader() {
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-              <Image src="/iimst_logo.jpg" alt="IIMST" width={52} height={52} className="rounded-full object-cover border-2 border-iimst-orange/20" />
+              <Image src={logo} alt="IIMST" width={52} height={52} className="rounded-full object-cover border-2 border-iimst-orange/20" />
               <div>
                 <h1 className="text-lg font-bold text-gray-900">IIMST</h1>
                 <p className="text-xs text-gray-500 hidden lg:block">Infinity Institute of Management Science & Technology</p>
               </div>
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
               {mainNav.map((item) =>
-                item.children ? (
+                hasChildren(item) ? (
                   <div
                     key={item.label}
-                    className="relative py-4"
+                    className="relative py-4 z-50"
                     onMouseEnter={() => setOpenDropdown(item.label)}
                     onMouseLeave={() => setOpenDropdown(null)}
                   >
-                    <button className="px-4 py-2 text-gray-700 hover:text-iimst-orange font-medium text-sm rounded-md hover:bg-iimst-orange-50 transition-colors">
+                    <button type="button" className="px-4 py-2 text-gray-700 hover:text-iimst-orange font-medium text-sm rounded-md hover:bg-iimst-orange-50 transition-colors">
                       {item.label} ▾
                     </button>
                     {openDropdown === item.label && (
-                      <div className="absolute top-full left-0 mt-0 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2">
-                        {item.children.map((c) => (
+                      <div className="absolute top-full left-0 mt-0 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-[100] min-w-max">
+                        {(item.children || []).map((c) => (
                           <Link
                             key={c.href}
                             href={c.href}
@@ -116,12 +124,12 @@ export default function PublicHeader() {
           </div>
 
           {open && (
-            <div className="lg:hidden py-4 border-t border-gray-100">
+            <div className="lg:hidden py-4 border-t border-gray-100 bg-white relative z-50" aria-label="Mobile menu">
               {mainNav.map((item) =>
-                item.children ? (
+                hasChildren(item) ? (
                   <div key={item.label} className="py-1">
                     <p className="px-3 py-1.5 font-semibold text-gray-700 text-sm">{item.label}</p>
-                    {item.children.map((c) => (
+                    {(item.children || []).map((c) => (
                       <Link
                         key={c.href}
                         href={c.href}

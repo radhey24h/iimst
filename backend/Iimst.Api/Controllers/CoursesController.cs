@@ -19,7 +19,7 @@ public class CoursesController : ControllerBase
     public async Task<ActionResult<List<CourseDto>>> GetAll()
     {
         var list = await _db.Courses.Find(FilterDefinition<Course>.Empty).SortBy(c => c.Name).ToListAsync();
-        return Ok(list.Select(c => new CourseDto { Id = c.Id, Name = c.Name, MaxSemester = c.MaxSemester }).ToList());
+        return Ok(list.Select(ToCourseDto).ToList());
     }
 
     [HttpGet("{id}")]
@@ -28,22 +28,31 @@ public class CoursesController : ControllerBase
     {
         var c = await _db.Courses.Find(x => x.Id == id).FirstOrDefaultAsync();
         if (c == null) return NotFound();
-        return Ok(new CourseDto { Id = c.Id, Name = c.Name, MaxSemester = c.MaxSemester });
+        return Ok(ToCourseDto(c));
     }
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<CourseDto>> Create([FromBody] CourseCreateDto dto)
     {
+        var name = dto.Name.Trim();
+        var code = dto.Code?.Trim() ?? "";
+        var existingByCode = !string.IsNullOrEmpty(code) && await _db.Courses.Find(c => c.Code == code).AnyAsync();
+        if (existingByCode) return BadRequest("A course with this code already exists.");
+        var existingByName = await _db.Courses.Find(c => c.Name == name).AnyAsync();
+        if (existingByName) return BadRequest("A course with this name already exists.");
+
         var c = new Course
         {
             Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
-            Name = dto.Name.Trim(),
-            MaxSemester = dto.MaxSemester is >= 1 and <= 8 ? dto.MaxSemester : 8,
+            Name = name,
+            Code = code,
+            MaxSemester = dto.MaxSemester is >= 1 and <= 20 ? dto.MaxSemester : 8,
+            DurationYears = dto.DurationYears is >= 1 and <= 10 ? dto.DurationYears : 3,
             CreatedAt = DateTime.UtcNow
         };
         await _db.Courses.InsertOneAsync(c);
-        return CreatedAtAction(nameof(GetById), new { id = c.Id }, new CourseDto { Id = c.Id, Name = c.Name, MaxSemester = c.MaxSemester });
+        return CreatedAtAction(nameof(GetById), new { id = c.Id }, ToCourseDto(c));
     }
 
     [HttpPut("{id}")]
@@ -52,10 +61,18 @@ public class CoursesController : ControllerBase
     {
         var c = await _db.Courses.Find(x => x.Id == id).FirstOrDefaultAsync();
         if (c == null) return NotFound();
-        c.Name = dto.Name.Trim();
-        c.MaxSemester = dto.MaxSemester is >= 1 and <= 8 ? dto.MaxSemester : 8;
+        var name = dto.Name.Trim();
+        var code = dto.Code?.Trim() ?? "";
+        var existingByCode = !string.IsNullOrEmpty(code) && await _db.Courses.Find(x => x.Code == code && x.Id != id).AnyAsync();
+        if (existingByCode) return BadRequest("A course with this code already exists.");
+        var existingByName = await _db.Courses.Find(x => x.Name == name && x.Id != id).AnyAsync();
+        if (existingByName) return BadRequest("A course with this name already exists.");
+        c.Name = name;
+        c.Code = code;
+        c.MaxSemester = dto.MaxSemester is >= 1 and <= 20 ? dto.MaxSemester : 8;
+        c.DurationYears = dto.DurationYears is >= 1 and <= 10 ? dto.DurationYears : 3;
         await _db.Courses.ReplaceOneAsync(x => x.Id == id, c);
-        return Ok(new CourseDto { Id = c.Id, Name = c.Name, MaxSemester = c.MaxSemester });
+        return Ok(ToCourseDto(c));
     }
 
     [HttpDelete("{id}")]
@@ -66,18 +83,29 @@ public class CoursesController : ControllerBase
         if (result.DeletedCount == 0) return NotFound();
         return NoContent();
     }
+    static CourseDto ToCourseDto(Course c) => new CourseDto
+    {
+        Id = c.Id,
+        Name = c.Name,
+        Code = c.Code,
+        MaxSemester = c.MaxSemester,
+        DurationYears = c.DurationYears
+    };
 }
 
 public class CourseDto
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
+    public string Code { get; set; } = "";
     public int MaxSemester { get; set; }
+    public int DurationYears { get; set; }
 }
 
 public class CourseCreateDto
 {
     public string Name { get; set; } = "";
-    /// <summary>6 for Diploma, 8 for Bachelor.</summary>
+    public string? Code { get; set; }
     public int MaxSemester { get; set; } = 8;
+    public int DurationYears { get; set; } = 3;
 }

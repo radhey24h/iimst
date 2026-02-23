@@ -5,6 +5,7 @@ namespace Iimst.Api.Data;
 
 public static class SeedData
 {
+    /// <summary>Seed only default admin user (userId + password). No courses, branches, or subjects.</summary>
     public static async Task InitializeAsync(MongoDbService db)
     {
         var admin = await db.Users.Find(u => u.UserName == "admin").FirstOrDefaultAsync();
@@ -14,27 +15,13 @@ public static class SeedData
         {
             Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
             UserName = "admin",
-            Email = "admin@iimst.co.in",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin@123"),
             Role = "Admin",
+            Email = "",
             CreatedAt = DateTime.UtcNow
         });
 
         await CreateIndexesAsync(db);
-        await SeedDefaultCourseAsync(db);
-    }
-
-    static async Task SeedDefaultCourseAsync(MongoDbService db)
-    {
-        var existing = await db.Courses.Find(FilterDefinition<Course>.Empty).FirstOrDefaultAsync();
-        if (existing != null) return;
-        await db.Courses.InsertOneAsync(new Course
-        {
-            Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
-            Name = "Bachelor Programme in Business Administration",
-            MaxSemester = 8,
-            CreatedAt = DateTime.UtcNow
-        });
     }
 
     static async Task CreateIndexesAsync(MongoDbService db)
@@ -42,5 +29,6 @@ public static class SeedData
         await db.Users.Indexes.CreateOneAsync(new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.UserName), new CreateIndexOptions { Unique = true }));
         await db.Users.Indexes.CreateOneAsync(new CreateIndexModel<User>(Builders<User>.IndexKeys.Ascending(u => u.Email)));
         await db.Students.Indexes.CreateOneAsync(new CreateIndexModel<Student>(Builders<Student>.IndexKeys.Ascending(s => s.EnrollmentNo), new CreateIndexOptions { Unique = true }));
+        await db.Subjects.Indexes.CreateOneAsync(new CreateIndexModel<Subject>(Builders<Subject>.IndexKeys.Ascending(s => s.CourseId).Ascending(s => s.BranchId).Ascending(s => s.Semester).Ascending(s => s.Code), new CreateIndexOptions { Unique = true }));
     }
 }

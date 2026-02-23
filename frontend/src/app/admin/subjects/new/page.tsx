@@ -3,18 +3,37 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { api, type Course } from '@/lib/api';
+import { api, getBranchesByCourse, type Course, type Branch } from '@/lib/api';
 
 export default function NewSubjectPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [form, setForm] = useState({ courseId: '', code: '', name: '', semester: '', program: '', minPassMarks: '40', maxMarks: '100', examLink: '', credits: '4' });
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [form, setForm] = useState({
+    courseId: '',
+    branchId: '',
+    code: '',
+    name: '',
+    semester: '1',
+    minPassMarks: '40',
+    maxMarks: '100',
+    examLink: '',
+    isActive: true,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     api<Course[]>('/courses').then(setCourses).catch(() => setCourses([]));
   }, []);
+
+  useEffect(() => {
+    if (!form.courseId) {
+      setBranches([]);
+      return;
+    }
+    getBranchesByCourse(form.courseId).then(setBranches).catch(() => setBranches([]));
+  }, [form.courseId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,14 +44,14 @@ export default function NewSubjectPage() {
         method: 'POST',
         body: JSON.stringify({
           courseId: form.courseId || undefined,
+          branchId: form.branchId || undefined,
           code: form.code.trim() || undefined,
           name: form.name.trim(),
-          semester: form.semester ? parseInt(form.semester, 10) : undefined,
-          program: form.program.trim() || undefined,
+          semester: form.semester ? parseInt(form.semester, 10) : 1,
           minPassMarks: parseFloat(form.minPassMarks) || 40,
           maxMarks: parseFloat(form.maxMarks) || 100,
           examLink: form.examLink.trim() || undefined,
-          credits: parseInt(form.credits, 10) || 4,
+          isActive: form.isActive,
         }),
       });
       router.push('/admin/subjects');
@@ -62,6 +81,19 @@ export default function NewSubjectPage() {
           </select>
         </div>
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+          <select
+            value={form.branchId}
+            onChange={(e) => setForm((f) => ({ ...f, branchId: e.target.value }))}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="">Select</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name} ({b.code})</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
           <input
             value={form.code}
@@ -83,41 +115,16 @@ export default function NewSubjectPage() {
           <input
             type="number"
             min={1}
-            max={8}
+            max={courses.find((c) => c.id === form.courseId)?.maxSemester ?? 8}
             value={form.semester}
             onChange={(e) => setForm((f) => ({ ...f, semester: e.target.value }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Program</label>
-          <input
-            value={form.program}
-            onChange={(e) => setForm((f) => ({ ...f, program: e.target.value }))}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-          />
-        </div>
-        <div className="flex gap-2">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Min pass marks</label>
-            <input
-              type="number"
-              min={0}
-              value={form.minPassMarks}
-              onChange={(e) => setForm((f) => ({ ...f, minPassMarks: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Max marks</label>
-            <input
-              type="number"
-              min={1}
-              value={form.maxMarks}
-              onChange={(e) => setForm((f) => ({ ...f, maxMarks: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
+          {form.courseId && (
+            <p className="text-xs text-gray-500 mt-1">
+              1 to {courses.find((c) => c.id === form.courseId)?.maxSemester ?? 8} for selected course
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Exam link (URL)</label>
@@ -130,14 +137,34 @@ export default function NewSubjectPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Credits</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Min passing marks</label>
+          <input
+            type="number"
+            min={0}
+            value={form.minPassMarks}
+            onChange={(e) => setForm((f) => ({ ...f, minPassMarks: e.target.value }))}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Max marks</label>
           <input
             type="number"
             min={1}
-            value={form.credits}
-            onChange={(e) => setForm((f) => ({ ...f, credits: e.target.value }))}
+            value={form.maxMarks}
+            onChange={(e) => setForm((f) => ({ ...f, maxMarks: e.target.value }))}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg"
           />
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={form.isActive}
+            onChange={(e) => setForm((f) => ({ ...f, isActive: e.target.checked }))}
+            className="rounded border-gray-300"
+          />
+          <label htmlFor="isActive" className="text-sm font-medium text-gray-700">Active</label>
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <div className="flex gap-2">

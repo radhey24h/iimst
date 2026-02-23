@@ -17,9 +17,15 @@ export async function api<T>(
   };
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('iimst_token');
+      localStorage.removeItem('iimst_user');
+      window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname || '/admin');
+    }
     const err = await res.json().catch(() => ({ message: res.statusText }));
     throw new Error((err as { message?: string }).message || 'Request failed');
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
@@ -50,7 +56,16 @@ export async function submitEnquiry(data: { name: string; email: string; phone?:
   return res.json();
 }
 
-export type Course = { id: string; name: string; maxSemester: number };
+export type Course = { id: string; name: string; code?: string; maxSemester: number; durationYears?: number };
+
+export type Branch = {
+  id: string;
+  courseId: string;
+  courseName?: string;
+  name: string;
+  code: string;
+  createdAt?: string;
+};
 
 export type Student = {
   id: string;
@@ -59,18 +74,20 @@ export type Student = {
   enrollmentNo: string;
   fullName: string;
   fatherName?: string;
-  motherName?: string;
   dateOfBirth?: string;
+  dob?: string;
   email?: string;
+  emailId?: string;
   address?: string;
   phone?: string;
+  phoneNumber?: string;
   courseId?: string;
   courseName?: string;
-  program?: string;
-  branch?: string;
-  currentSemester?: number;
+  branchId?: string;
+  branchName?: string;
+  admissionYear?: number;
   photoUrl?: string;
-  bloodGroup?: string;
+  status?: string;
   createdAt: string;
 };
 
@@ -78,29 +95,56 @@ export type Subject = {
   id: string;
   courseId: string;
   courseName?: string;
+  branchId?: string;
+  branchName?: string;
   code: string;
   name: string;
-  semester?: number;
-  program?: string;
+  semester: number;
   minPassMarks: number;
   maxMarks: number;
   examLink?: string;
-  credits: number;
+  isActive?: boolean;
 };
-export type Result = {
-  id: string;
+
+export type SubjectForResult = {
+  subjectId: string;
+  code: string;
+  name: string;
+  semester: number;
+  semesterRoman: string;
+  maxMarks: number;
+  minPassMarks: number;
+};
+
+export type ResultBulkRequest = {
   studentId: string;
+  semester: number;
+  marks: Array<{ subjectId: string; marksObtained: number }>;
+};
+
+export type ResultItem = {
+  subjectName: string;
+  semester: number;
+  semesterRoman: string;
+  marksObtained: number;
+  grade?: string;
+  isPassed: boolean;
+};
+
+export type Result = {
+  id?: string;
+  studentId?: string;
   studentName?: string;
   enrollmentNo?: string;
   courseId?: string;
   courseName?: string;
-  subjectId: string;
+  subjectId?: string;
   subjectCode?: string;
   subjectName?: string;
   semester: number;
   semesterRoman?: string;
   marksObtained: number;
-  maxMarks: number;
+  maxMarks?: number;
   minPassMarks?: number;
   grade?: string;
   isPassed: boolean;
@@ -113,6 +157,7 @@ export type MarksCard = {
   dateOfBirth?: string;
   enrollmentNo: string;
   courseName?: string;
+  branchName?: string;
   semester: number;
   semesterRoman: string;
   rows: MarksCardRow[];
@@ -144,3 +189,101 @@ export type ExamAttempt = {
   attemptedAt: string;
 };
 export type User = { id: string; userName: string; email: string; role: string; createdAt: string };
+
+export type Enquiry = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  message?: string;
+  courseInterest?: string;
+  createdAt: string;
+};
+
+export function getBranchesByCourse(courseId: string) {
+  return api<Branch[]>(`/branches?courseId=${encodeURIComponent(courseId)}`);
+}
+
+/** Update student (e.g. photo). Students can only update their own record. */
+export function updateStudent(studentId: string, data: { photoUrl?: string | null }) {
+  return api<Student>(`/students/${encodeURIComponent(studentId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+/** Update student status (Active/Inactive). Admin only. */
+export function updateStudentStatus(studentId: string, status: string) {
+  return api<Student>(`/students/${encodeURIComponent(studentId)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+}
+
+/** Delete student and their results. Admin only. */
+export function deleteStudent(studentId: string) {
+  return api<void>(`/students/${encodeURIComponent(studentId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export function getSubjectsForResult(courseId: string, branchId: string, semester: number) {
+  return api<SubjectForResult[]>(
+    `/subjects/by-course-branch-semester?courseId=${encodeURIComponent(courseId)}&branchId=${encodeURIComponent(branchId)}&semester=${semester}`
+  );
+}
+
+export function bulkInsertResults(payload: ResultBulkRequest) {
+  return api<ResultItem[]>('/results/bulk', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function hasResultsForSemester(studentId: string, semester: number) {
+  return api<{ hasResults: boolean }>(`/results/student/${studentId}/has-results?semester=${semester}`);
+}
+
+/** For prefilling marks when editing results. Returns list with subjectId and marksObtained. */
+export function getResultsByStudentAndSemester(studentId: string, semester: number) {
+  return api<Result[]>(`/results/student/${encodeURIComponent(studentId)}?semester=${semester}`);
+}
+
+/** Semesters for which the student has results (for marks card dropdown). */
+/** Semesters for which the student has results (for marks card dropdown). Always fresh from backend. */
+export function getSemestersWithResults(studentId: string) {
+  return api<number[]>(`/results/student/${encodeURIComponent(studentId)}/semesters`, { cache: 'no-store' });
+}
+
+/** Result-cum-Detailed Marks Card for one semester. Always fresh so admin updates appear. */
+export function getMarksCard(studentId: string, semester: number) {
+  return api<MarksCard>(`/results/student/${encodeURIComponent(studentId)}/marks-card?semester=${semester}`, { cache: 'no-store' });
+}
+
+/** Paginated students list; returns total from X-Total-Count for pagination UI. */
+export async function getStudentsPaginated(
+  page: number,
+  pageSize: number,
+  search?: string,
+  courseId?: string
+): Promise<{ students: Student[]; total: number }> {
+  const params = new URLSearchParams();
+  params.set('page', String(page));
+  params.set('pageSize', String(pageSize));
+  if (search?.trim()) params.set('search', search.trim());
+  if (courseId?.trim()) params.set('courseId', courseId.trim());
+  const token = typeof window !== 'undefined' ? localStorage.getItem('iimst_token') : null;
+  const res = await fetch(`${API_BASE}/students?${params}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error((err as { message?: string }).message || 'Request failed');
+  }
+  const students = (await res.json()) as Student[];
+  const total = parseInt(res.headers.get('X-Total-Count') ?? '0', 10);
+  return { students, total };
+}
