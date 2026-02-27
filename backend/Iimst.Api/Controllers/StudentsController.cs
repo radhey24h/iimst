@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using System.Text.RegularExpressions;
 using Iimst.Api.Data;
 using Iimst.Api.Helpers;
 using Iimst.Api.Services;
@@ -12,6 +13,8 @@ namespace Iimst.Api.Controllers;
 public class StudentsController : ControllerBase
 {
     private readonly MongoDbService _db;
+    private static readonly Regex EnrollmentNoPattern = new("^[A-Z0-9-]+$", RegexOptions.Compiled);
+    private const int MaxEnrollmentGenerationAttempts = 10;
 
     public StudentsController(MongoDbService db) => _db = db;
 
@@ -106,18 +109,16 @@ public class StudentsController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<StudentDto>> Create([FromBody] StudentCreateDto dto)
     {
-        var enrollmentNo = dto.EnrollmentNo?.Trim();
+        var enrollmentNo = NormalizeEnrollment(dto.EnrollmentNo);
         if (string.IsNullOrEmpty(enrollmentNo))
         {
-            enrollmentNo = GenerateEnrollmentNo();
-            for (int i = 0; i < 10; i++)
-            {
-                var exists = await _db.Students.Find(s => s.EnrollmentNo == enrollmentNo).FirstOrDefaultAsync();
-                if (exists == null) break;
-                enrollmentNo = GenerateEnrollmentNo();
-            }
-            var finalCheck = await _db.Students.Find(s => s.EnrollmentNo == enrollmentNo).FirstOrDefaultAsync();
-            if (finalCheck != null) return BadRequest("Could not generate unique enrollment number. Please try again or supply one.");
+            var generated = await TryGenerateUniqueEnrollmentNoAsync();
+            if (generated == null) return BadRequest("Could not generate unique enrollment number. Please try again or supply one.");
+            enrollmentNo = generated;
+        }
+        else if (!EnrollmentNoPattern.IsMatch(enrollmentNo))
+        {
+            return BadRequest("Enrollment number can only contain letters, numbers, or hyphen.");
         }
         var existing = await _db.Students.Find(s => s.EnrollmentNo == enrollmentNo).FirstOrDefaultAsync();
         if (existing != null) return BadRequest("Enrollment number already exists");
@@ -211,6 +212,18 @@ public class StudentsController : ControllerBase
         return NoContent();
     }
 
+    private async Task<string?> TryGenerateUniqueEnrollmentNoAsync()
+    {
+        for (var attempt = 0; attempt < MaxEnrollmentGenerationAttempts; attempt++)
+        {
+            var candidate = NormalizeEnrollment(GenerateEnrollmentNo());
+            if (string.IsNullOrEmpty(candidate)) continue;
+            var exists = await _db.Students.Find(s => s.EnrollmentNo == candidate).FirstOrDefaultAsync();
+            if (exists == null) return candidate;
+        }
+        return null;
+    }
+
     static string GenerateEnrollmentNo()
     {
         var yyyymmdd = DateTime.UtcNow.ToString("yyyyMMdd");
@@ -218,6 +231,8 @@ public class StudentsController : ControllerBase
         var three = rnd.Next(100, 1000);
         return yyyymmdd + three;
     }
+
+    static string? NormalizeEnrollment(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim().ToUpperInvariant();
 
     static StudentDto ToDto(Student s, User? user, Course? course, Branch? branch) => new StudentDto
     {

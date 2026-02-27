@@ -7,7 +7,7 @@ name: iimst
 
 services:
   mongodb:
-    image: mongo:7
+    image: mongo:7.0
     container_name: iimst-mongodb
     restart: unless-stopped
     ports:
