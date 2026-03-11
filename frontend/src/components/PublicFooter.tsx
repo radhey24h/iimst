@@ -32,9 +32,10 @@ export default function PublicFooter() {
           <div>
             <h4 className="font-semibold text-white mb-4 text-sm uppercase tracking-wider">Contact Us</h4>
             <ul className="space-y-2.5 text-gray-400 text-sm">
+              <li>N-92, Pratap Market, Munirka,<br />New Delhi – 110067</li>
               <li><a href="tel:+918595229157" className="hover:text-white transition-colors">+91 8595229157</a></li>
               <li><a href="mailto:info@iimst.co.in" className="hover:text-white transition-colors">info@iimst.co.in</a></li>
-              <li>Mon - Sat: 6:00 AM - 6:00 PM</li>
+              <li>Mon - Sat: 10:00 AM - 6:00 PM</li>
             </ul>
           </div>
         </div>

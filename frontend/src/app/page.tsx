@@ -8,20 +8,20 @@ import ScrollToHash from '@/components/ScrollToHash';
 
 export default function HomePage() {
   const achievements = [
-    { value: '5,000+', label: 'Students Enrolled' },
-    { value: '25+', label: 'Years of Excellence' },
-    { value: '50+', label: 'Programs Offered' },
+    { value: '2,000+', label: 'Students Enrolled' },
+    { value: '15+', label: 'Years of Excellence' },
+    { value: '100+', label: 'Programs Offered' },
     { value: '98%', label: 'Placement Support' },
   ];
 
   const courses = [
-    { title: 'Management Programs', desc: 'BBA, MBA, PGDM and executive diplomas for leadership and business careers.', href: '/courses#management', img: 'https://picsum.photos/400/240?random=1' },
-    { title: 'Diploma Programs', desc: 'Six-month and one-year diplomas in management, IT and skill-based streams.', href: '/courses#diploma', img: 'https://picsum.photos/400/240?random=2' },
-    { title: 'Technical Programs', desc: 'Diploma and certification programs in engineering and computer applications.', href: '/courses', img: 'https://picsum.photos/400/240?random=3' },
+    { title: 'Management Programs', desc: 'BBA, MBA, PGDM and executive diplomas for leadership and business careers.', href: '/courses#management', gradient: 'from-orange-500 to-red-500', icon: '💼' },
+    { title: 'Diploma Programs', desc: 'Six-month and one-year diplomas in management, IT and skill-based streams.', href: '/courses#diploma', gradient: 'from-blue-500 to-cyan-500', icon: '🎓' },
+    { title: 'Technical Programs', desc: 'Diploma and certification programs in engineering and computer applications.', href: '/courses', gradient: 'from-purple-500 to-pink-500', icon: '💻' },
   ];
 
   const whyChoose = [
-    { title: 'Recognized Programs', desc: 'IIMST offers industry-aligned programs designed for working professionals and career upgradation.' },
+    { title: 'Industry-Aligned Programs', desc: 'IIMST offers skill-based and professional development programs designed for working professionals and career upgradation.' },
     { title: 'Flexible Learning', desc: 'Study at your own pace with distance and online options. Balance work and education easily.' },
     { title: 'Student Portal', desc: 'One login for digital ID card, semester results and subject-wise online examinations.' },
     { title: 'Dedicated Support', desc: 'Admission guidance, study material and exam support from our academic team.' },
@@ -45,9 +45,8 @@ export default function HomePage() {
       <PublicHeader />
       <main className="flex-1">
         {/* Hero: 2 columns - content left, enquiry form right */}
-        <section id="enquiry" className="relative bg-gray-900 min-h-[480px] flex items-center">
+        <section id="enquiry" className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-iimst-orange/20 min-h-[480px] flex items-center">
           <div className="absolute inset-0">
-            <Image src="https://picsum.photos/1920/600?random=hero" alt="" fill className="object-cover opacity-40" priority />
             <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/80 to-gray-900/70" />
           </div>
           <div className="container mx-auto px-4 max-w-7xl relative z-10 py-12">
@@ -57,7 +56,7 @@ export default function HomePage() {
                   Infinity Institute of Management Science & Technology
                 </h1>
                 <p className="text-base md:text-lg text-gray-200 mb-6">
-                  Quality management and technical education through flexible learning. Enrol in diploma, MBA, PGDM and certification programs. Access your student portal for ID card, results and online exams.
+                  Professional development and skill-based education through flexible learning. Enrol in diploma and certification programs. Access your student portal for ID card, results and online exams.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <Link href="/login" className="bg-iimst-orange hover:bg-iimst-orange-dark text-white px-6 py-3 rounded-md font-semibold transition-colors">
@@ -99,8 +98,18 @@ export default function HomePage() {
         <section className="py-16 px-4 bg-gray-50">
           <div className="container mx-auto max-w-7xl">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="relative h-72 lg:h-96 rounded-xl overflow-hidden shadow-lg order-2 lg:order-1">
-                <Image src="https://picsum.photos/600/400?random=welcome" alt="IIMST" fill className="object-cover" />
+              <div className="relative h-72 lg:h-96 rounded-2xl overflow-hidden shadow-xl order-2 lg:order-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500"></div>
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
+                <div className="relative text-center text-white p-8 flex flex-col items-center justify-center h-full">
+                  <div className="w-28 h-28 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 shadow-2xl">
+                    <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-3xl font-bold mb-2">Education Excellence</h3>
+                  <p className="text-white/90 text-lg">Building Futures Through Learning</p>
+                </div>
               </div>
               <div className="order-1 lg:order-2">
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">About IIMST</h2>
@@ -121,17 +130,17 @@ export default function HomePage() {
           <div className="container mx-auto max-w-7xl">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-2">Programs We Offer</h2>
             <p className="text-center text-gray-600 mb-10 max-w-xl mx-auto text-sm">
-              Management, diploma and technical programs to suit your career goals.
+              Professional development, diploma and skill-based programs to suit your career goals.
             </p>
             <div className="grid md:grid-cols-3 gap-8">
               {courses.map((c) => (
-                <Link key={c.href} href={c.href} className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg hover:border-iimst-orange/30 transition-all">
-                  <div className="relative h-44 bg-gray-200">
-                    <Image src={c.img} alt={c.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                <Link key={c.href} href={c.href} className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-iimst-orange/50 transition-all">
+                  <div className={`relative h-44 bg-gradient-to-br ${c.gradient} flex items-center justify-center`}>
+                    <span className="text-6xl group-hover:scale-110 transition-transform duration-300">{c.icon}</span>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-iimst-orange transition-colors">{c.title}</h3>
-                    <p className="text-gray-600 text-sm">{c.desc}</p>
+                  <div className="p-6">
+                    <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-iimst-orange transition-colors">{c.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed">{c.desc}</p>
                   </div>
                 </Link>
               ))}

@@ -1,0 +1,17 @@
+<svg width="400" height="240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6a4c93;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="240" fill="url(#grad3)"/>
+  <g transform="translate(200, 90)">
+    <!-- Computer/Technical icon -->
+    <rect x="-45" y="-25" width="90" height="50" fill="none" stroke="white" stroke-width="3" opacity="0.3" rx="3"/>
+    <rect x="-35" y="-18" width="70" height="35" fill="white" opacity="0.15"/>
+    <rect x="-20" y="30" width="40" height="3" fill="white" opacity="0.3"/>
+    <rect x="-30" y="33" width="60" height="2" fill="white" opacity="0.3"/>
+    <text x="0" y="55" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle">Technical Programs</text>
+  </g>
+</svg>
