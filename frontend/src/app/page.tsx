@@ -161,9 +161,16 @@ export default function HomePage() {
               Practical learning, flexible schedules and a single portal for all student needs.
             </p>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {whyChoose.map((w) => (
-                <div key={w.title} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                  <h3 className="font-semibold text-gray-900 mb-2">{w.title}</h3>
+              {whyChoose.map((w, index) => (
+                <div 
+                  key={w.title} 
+                  className="group bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-2xl hover:border-iimst-orange/30 hover:-translate-y-2 transition-all duration-300 cursor-pointer"
+                  style={{ transitionDelay: `${index * 50}ms` }}
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-iimst-orange/10 to-iimst-orange/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300">
+                    <span className="text-2xl">{index === 0 ? '🎯' : index === 1 ? '⏰' : index === 2 ? '🖥️' : '🤝'}</span>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-iimst-orange transition-colors">{w.title}</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">{w.desc}</p>
                 </div>
               ))}
@@ -174,11 +181,17 @@ export default function HomePage() {
         {/* Accreditation */}
         <section className="py-10 px-4 bg-white border-y border-gray-100">
           <div className="container mx-auto max-w-7xl text-center">
-            <p className="text-gray-600 text-sm mb-2">Accreditation & Certification</p>
+            <p className="text-gray-600 text-sm mb-4 font-medium">Accreditation & Certification</p>
             <div className="flex flex-wrap justify-center gap-8 items-center">
-              <div className="w-24 h-14 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-600 font-medium">Recognized</div>
-              <div className="w-24 h-14 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-600 font-medium">Quality Programs</div>
-              <div className="w-24 h-14 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-600 font-medium">Student Portal</div>
+              <div className="group w-28 h-16 rounded-lg bg-gradient-to-br from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 flex items-center justify-center text-xs text-gray-700 font-semibold border-2 border-blue-200/50 hover:border-blue-400 hover:scale-110 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <span className="group-hover:scale-110 transition-transform">✓ Recognized</span>
+              </div>
+              <div className="group w-28 h-16 rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 flex items-center justify-center text-xs text-gray-700 font-semibold border-2 border-green-200/50 hover:border-green-400 hover:scale-110 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <span className="group-hover:scale-110 transition-transform">★ Quality Programs</span>
+              </div>
+              <div className="group w-28 h-16 rounded-lg bg-gradient-to-br from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 flex items-center justify-center text-xs text-gray-700 font-semibold border-2 border-orange-200/50 hover:border-orange-400 hover:scale-110 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <span className="group-hover:scale-110 transition-transform">🎓 Student Portal</span>
+              </div>
             </div>
           </div>
         </section>
@@ -189,9 +202,22 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">Latest Updates</h2>
             <div className="grid md:grid-cols-3 gap-6">
               {updates.map((n, i) => (
-                <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-                  <p className="font-medium text-gray-900">{n.title}</p>
-                  <p className="text-gray-500 text-sm mt-1">{n.date}</p>
+                <div 
+                  key={i} 
+                  className="group bg-white rounded-xl p-6 border-2 border-gray-100 shadow-sm hover:shadow-xl hover:border-iimst-orange hover:-translate-y-1 transition-all duration-300 cursor-pointer relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-iimst-orange/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="flex items-start gap-3 relative">
+                    <div className="flex-shrink-0 w-10 h-10 bg-iimst-orange/10 group-hover:bg-iimst-orange/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                      <span className="text-lg">{i === 0 ? '📢' : i === 1 ? '🎓' : '🔔'}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 group-hover:text-iimst-orange transition-colors">{n.title}</p>
+                      <p className="text-gray-500 text-sm mt-2 flex items-center gap-1">
+                        <span className="text-xs">📅</span> {n.date}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -204,11 +230,25 @@ export default function HomePage() {
             <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">What Our Students Say</h2>
             <p className="text-center text-gray-600 mb-10 text-sm">Experiences from IIMST learners.</p>
             <div className="grid md:grid-cols-3 gap-8">
-              {testimonials.map((t) => (
-                <div key={t.name} className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                  <p className="text-gray-600 text-sm italic mb-4">&ldquo;{t.text}&rdquo;</p>
-                  <p className="font-semibold text-gray-900">{t.name}</p>
-                  <p className="text-gray-500 text-sm">{t.program} Student</p>
+              {testimonials.map((t, index) => (
+                <div 
+                  key={t.name} 
+                  className="group bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 border-2 border-gray-100 hover:border-iimst-orange/30 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer relative"
+                >
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-iimst-orange/10 group-hover:bg-iimst-orange/20 rounded-full flex items-center justify-center text-2xl group-hover:rotate-12 transition-all duration-300">
+                    💬
+                  </div>
+                  <div className="relative mt-4">
+                    <div className="text-4xl text-iimst-orange/20 font-serif leading-none mb-2">&ldquo;</div>
+                    <p className="text-gray-600 text-sm italic mb-4 leading-relaxed">{t.text}</p>
+                    <div className="text-4xl text-iimst-orange/20 font-serif leading-none text-right">&rdquo;</div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <p className="font-bold text-gray-900 group-hover:text-iimst-orange transition-colors">{t.name}</p>
+                    <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
+                      <span className="text-xs">🎓</span> {t.program} Student
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
