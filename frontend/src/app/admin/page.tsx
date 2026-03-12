@@ -7,7 +7,6 @@ export default function AdminDashboard() {
     { href: '/admin/subjects', label: 'Subjects', desc: 'Manage subjects per course, branch and semester (exam link, min/max marks)' },
     { href: '/admin/students', label: 'Students', desc: 'Add, edit student details and assign course/branch' },
     { href: '/admin/results', label: 'Results', desc: 'View results and add bulk result entry' },
-    { href: '/admin/enquiries', label: 'Enquiries', desc: 'View enquiries from students and visitors' },
   ];
 
   return (

@@ -23,6 +23,7 @@ export default function AdminResultsEntryPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [semester, setSemester] = useState(1);
+  const [year, setYear] = useState(new Date().getFullYear());
   const [subjects, setSubjects] = useState<SubjectForResult[]>([]);
   const [marks, setMarks] = useState<Record<string, string>>({});
   const [subjectsLoading, setSubjectsLoading] = useState(false);
@@ -74,6 +75,10 @@ export default function AdminResultsEntryPage() {
         });
         setMarks(initial);
         setHasExistingResults(hasResults);
+        // Set year from existing results if available
+        if (existingResults.length > 0 && existingResults[0].year) {
+          setYear(existingResults[0].year);
+        }
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to load subjects');
@@ -107,6 +112,7 @@ export default function AdminResultsEntryPage() {
       await bulkInsertResults({
         studentId: student.id,
         semester,
+        year,
         marks: subjects.map((s) => ({
           subjectId: s.subjectId,
           marksObtained: Number(marks[s.subjectId]),
@@ -119,7 +125,7 @@ export default function AdminResultsEntryPage() {
     } finally {
       setSaving(false);
     }
-  }, [student, semester, subjects, marks, canSave]);
+  }, [student, semester, year, subjects, marks, canSave]);
 
   if (!studentId) {
     return (
@@ -186,6 +192,16 @@ export default function AdminResultsEntryPage() {
                 <option key={n} value={n}>Semester {toRoman(n)}</option>
               ))}
             </select>
+            
+            <label className="text-sm font-medium text-gray-700 ml-3">Year</label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              min={2000}
+              max={2100}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-iimst-orange focus:border-transparent w-24"
+            />
           </div>
 
           {successMessage && (

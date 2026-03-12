@@ -15,7 +15,6 @@ public class MongoDbService
     public IMongoCollection<SemesterResult> SemesterResults => Database.GetCollection<SemesterResult>("semesterResults");
     public IMongoCollection<SubjectExam> SubjectExams => Database.GetCollection<SubjectExam>("subjectExams");
     public IMongoCollection<ExamAttempt> ExamAttempts => Database.GetCollection<ExamAttempt>("examAttempts");
-    public IMongoCollection<Enquiry> Enquiries => Database.GetCollection<Enquiry>("enquiries");
 
     public MongoDbService(IConfiguration config)
     {

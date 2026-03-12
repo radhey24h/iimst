@@ -4,6 +4,7 @@ public class ResultBulkRequestDto
 {
     public string StudentId { get; set; } = "";
     public int Semester { get; set; }
+    public int Year { get; set; } = DateTime.UtcNow.Year;
     public List<ResultBulkItemDto> Marks { get; set; } = new();
 }
 

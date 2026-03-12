@@ -11,7 +11,7 @@ public class ResultService : IResultService
 
     public ResultService(MongoDbService db) => _db = db;
 
-    public async Task<List<ResultDto>> BulkInsertResultsAsync(string studentId, int semester, List<(string SubjectId, decimal MarksObtained)> marksList)
+    public async Task<List<ResultDto>> BulkInsertResultsAsync(string studentId, int semester, int year, List<(string SubjectId, decimal MarksObtained)> marksList)
     {
         var student = await _db.Students.Find(s => s.Id == studentId).FirstOrDefaultAsync();
         if (student == null) throw new InvalidOperationException("Student not found");
@@ -56,6 +56,7 @@ public class ResultService : IResultService
                 StudentId = studentId,
                 SubjectId = subjId,
                 Semester = semester,
+                Year = year,
                 MarksObtained = marksObtained,
                 Grade = grade,
                 IsPassed = isPassed,
@@ -67,6 +68,7 @@ public class ResultService : IResultService
                 SubjectName = subject.Name,
                 Semester = semester,
                 SemesterRoman = RomanHelper.ToRoman(semester),
+                Year = year,
                 MarksObtained = marksObtained,
                 Grade = grade,
                 IsPassed = isPassed

@@ -42,20 +42,6 @@ export const auth = {
     }),
 };
 
-const API_BASE_PUBLIC = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-export async function submitEnquiry(data: { name: string; email: string; phone?: string; message?: string; courseInterest?: string }) {
-  const res = await fetch(`${API_BASE_PUBLIC}/enquiries`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error((err as { message?: string }).message || 'Failed to submit');
-  }
-  return res.json();
-}
-
 export type Course = { id: string; name: string; code?: string; maxSemester: number; durationYears?: number };
 
 export type Branch = {
@@ -119,6 +105,7 @@ export type SubjectForResult = {
 export type ResultBulkRequest = {
   studentId: string;
   semester: number;
+  year: number;
   marks: Array<{ subjectId: string; marksObtained: number }>;
 };
 
@@ -143,6 +130,7 @@ export type Result = {
   subjectName?: string;
   semester: number;
   semesterRoman?: string;
+  year?: number;
   marksObtained: number;
   maxMarks?: number;
   minPassMarks?: number;
@@ -160,6 +148,7 @@ export type MarksCard = {
   branchName?: string;
   semester: number;
   semesterRoman: string;
+  year?: number;
   rows: MarksCardRow[];
   totalMaximumMarks: number;
   totalPassMarks: number;
@@ -189,16 +178,6 @@ export type ExamAttempt = {
   attemptedAt: string;
 };
 export type User = { id: string; userName: string; email: string; role: string; createdAt: string };
-
-export type Enquiry = {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  message?: string;
-  courseInterest?: string;
-  createdAt: string;
-};
 
 export function getBranchesByCourse(courseId: string) {
   return api<Branch[]>(`/branches?courseId=${encodeURIComponent(courseId)}`);

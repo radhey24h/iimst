@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
 import PublicFooter from '@/components/PublicFooter';
+import HeroCarousel from '@/components/HeroCarousel';
 import Image from 'next/image';
 import logo from '@/assets/logo/iimst_logo.jpg';
-import EnquiryForm from '@/components/EnquiryForm';
 import ScrollToHash from '@/components/ScrollToHash';
 
 export default function HomePage() {
@@ -44,40 +44,11 @@ export default function HomePage() {
       <ScrollToHash />
       <PublicHeader />
       <main className="flex-1">
-        {/* Hero: 2 columns - content left, enquiry form right */}
-        <section id="enquiry" className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-iimst-orange/20 min-h-[480px] flex items-center">
-          <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-900/80 to-gray-900/70" />
-          </div>
-          <div className="container mx-auto px-4 max-w-7xl relative z-10 py-12">
-            <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
-              <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
-                  Infinity Institute of Management Science & Technology
-                </h1>
-                <p className="text-base md:text-lg text-gray-200 mb-6">
-                  Professional development and skill-based education through flexible learning. Enrol in diploma and certification programs. Access your student portal for ID card, results and online exams.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <Link href="/login" className="bg-iimst-orange hover:bg-iimst-orange-dark text-white px-6 py-3 rounded-md font-semibold transition-colors">
-                    Student Login
-                  </Link>
-                  <Link href="/courses" className="bg-white/10 hover:bg-white/20 text-white border border-white/40 px-6 py-3 rounded-md font-semibold transition-colors">
-                    View Courses
-                  </Link>
-                </div>
-              </div>
-              <div className="flex justify-center lg:justify-end">
-                <div className="w-full max-w-sm">
-                  <EnquiryForm />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Hero Carousel */}
+        <HeroCarousel />
 
         {/* Achievements */}
-        <section className="py-14 px-4 bg-white shadow-sm">
+        <section className="py-14 px-4 bg-gradient-to-b from-orange-50 via-white to-white border-b border-gray-100">
           <div className="container mx-auto max-w-7xl">
             <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">Our Reach</h2>
             <p className="text-center text-gray-600 mb-10 max-w-xl mx-auto text-sm">
@@ -85,8 +56,8 @@ export default function HomePage() {
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {achievements.map((a) => (
-                <div key={a.label} className="text-center">
-                  <p className="text-3xl md:text-4xl font-bold text-iimst-orange">{a.value}</p>
+                <div key={a.label} className="text-center group">
+                  <p className="text-3xl md:text-4xl font-bold text-iimst-orange group-hover:scale-110 transition-transform">{a.value}</p>
                   <p className="text-gray-600 mt-1 text-sm">{a.label}</p>
                 </div>
               ))}
@@ -95,7 +66,7 @@ export default function HomePage() {
         </section>
 
         {/* Welcome */}
-        <section className="py-16 px-4 bg-gray-50">
+        <section className="py-16 px-4 bg-gradient-to-b from-white to-gray-50">
           <div className="container mx-auto max-w-7xl">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative h-72 lg:h-96 rounded-2xl overflow-hidden shadow-xl order-2 lg:order-1">
@@ -126,7 +97,7 @@ export default function HomePage() {
         </section>
 
         {/* Programs */}
-        <section className="py-16 px-4 bg-white">
+        <section className="py-16 px-4 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto max-w-7xl">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-2">Programs We Offer</h2>
             <p className="text-center text-gray-600 mb-10 max-w-xl mx-auto text-sm">
@@ -154,7 +125,7 @@ export default function HomePage() {
         </section>
 
         {/* Why IIMST */}
-        <section className="py-16 px-4 bg-gray-50">
+        <section className="py-16 px-4 bg-gradient-to-b from-white to-gray-50">
           <div className="container mx-auto max-w-7xl">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-2">Why IIMST</h2>
             <p className="text-center text-gray-600 mb-10 max-w-xl mx-auto text-sm">
@@ -179,7 +150,7 @@ export default function HomePage() {
         </section>
 
         {/* Accreditation */}
-        <section className="py-10 px-4 bg-white border-y border-gray-100">
+        <section className="py-10 px-4 bg-gradient-to-r from-blue-50/30 via-purple-50/30 to-orange-50/30 border-y border-gray-100">
           <div className="container mx-auto max-w-7xl text-center">
             <p className="text-gray-600 text-sm mb-4 font-medium">Accreditation & Certification</p>
             <div className="flex flex-wrap justify-center gap-8 items-center">
@@ -197,7 +168,7 @@ export default function HomePage() {
         </section>
 
         {/* Updates */}
-        <section className="py-16 px-4 bg-gray-50">
+        <section className="py-16 px-4 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto max-w-7xl">
             <h2 className="text-2xl font-bold text-center text-gray-900 mb-10">Latest Updates</h2>
             <div className="grid md:grid-cols-3 gap-6">
@@ -225,7 +196,7 @@ export default function HomePage() {
         </section>
 
         {/* Testimonials */}
-        <section className="py-16 px-4 bg-white">
+        <section className="py-16 px-4 bg-gradient-to-b from-white to-gray-50">
           <div className="container mx-auto max-w-7xl">
             <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">What Our Students Say</h2>
             <p className="text-center text-gray-600 mb-10 text-sm">Experiences from IIMST learners.</p>
@@ -256,7 +227,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA - light section before footer */}
-        <section className="py-14 px-4 bg-iimst-orange-50 border-t border-iimst-orange/10">
+        <section className="py-14 px-4 bg-gradient-to-b from-gray-50 to-orange-50 border-t border-iimst-orange/10">
           <div className="container mx-auto max-w-4xl text-center">
             <div className="flex justify-center mb-6">
               <Image src={logo} alt="IIMST" width={72} height={72} className="rounded-full object-cover border-2 border-iimst-orange/20" />

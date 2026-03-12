@@ -14,6 +14,7 @@ export default function AdminResultsNewPage() {
   const [step1CourseId, setStep1CourseId] = useState('');
   const [step2Student, setStep2Student] = useState<Student | null>(null);
   const [step3Semester, setStep3Semester] = useState(1);
+  const [year, setYear] = useState(new Date().getFullYear());
   const [subjectsLoaded, setSubjectsLoaded] = useState(false);
   const [hasExistingResults, setHasExistingResults] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -103,6 +104,7 @@ export default function AdminResultsNewPage() {
       await bulkInsertResults({
         studentId: step2Student.id,
         semester: step3Semester,
+        year,
         marks: subjects.map((s) => ({
           subjectId: s.subjectId,
           marksObtained: Number(marks[s.subjectId]),
@@ -190,6 +192,18 @@ export default function AdminResultsNewPage() {
               {courses.find((c) => c.id === step1CourseId)?.name ?? 'Course'} has {courses.find((c) => c.id === step1CourseId)?.maxSemester ?? 8} semesters
             </p>
           )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+          <input
+            type="number"
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            min={2000}
+            max={2100}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-iimst-orange"
+          />
         </div>
 
         <div>

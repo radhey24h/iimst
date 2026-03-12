@@ -34,9 +34,6 @@ export default function ContactPage() {
               <p className="text-gray-600">Use the <Link href="/login" className="text-iimst-orange hover:underline">Login</Link> link to access your ID card, results and exams.</p>
             </div>
           </div>
-          <p className="mt-6 text-gray-600 text-sm">
-            You can also submit a quick enquiry from the <Link href="/#enquiry" className="text-iimst-orange hover:underline">home page</Link>.
-          </p>
         </div>
       </main>
       <PublicFooter />

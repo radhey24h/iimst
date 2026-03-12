@@ -25,6 +25,11 @@ function formatDob(dob: string | undefined): string {
   }
 }
 
+// Map semester to month: 1,5,7 → JULY; others → JAN
+function getSemesterMonth(semester: number): string {
+  return semester === 1 || semester === 5 || semester === 7 ? 'JULY' : 'JAN';
+}
+
 export default function StudentResultsPage() {
   const [student, setStudent] = useState<Student | null>(null);
   const [semesters, setSemesters] = useState<number[]>([]);
@@ -116,13 +121,16 @@ export default function StudentResultsPage() {
       ) : error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">{error}</div>
       ) : marksCard ? (
-        <MarksCardView card={marksCard} year={new Date().getFullYear()} />
+        <MarksCardView card={marksCard} />
       ) : null}
     </div>
   );
 }
 
-function MarksCardView({ card, year }: { card: MarksCard; year: number }) {
+function MarksCardView({ card }: { card: MarksCard }) {
+  const displayYear = card.year ?? new Date().getFullYear();
+  const displayMonth = getSemesterMonth(card.semester);
+  
   return (
     <div className="bg-[#faf8f5] border-2 border-amber-700/30 rounded-lg overflow-hidden shadow-md print:shadow-none print:border-black">
       {/* Header */}
@@ -132,7 +140,7 @@ function MarksCardView({ card, year }: { card: MarksCard; year: number }) {
         </div>
         <div>
           <h2 className="text-lg font-bold text-gray-900">Infinity Institute Of Management Science &amp; Technology</h2>
-          <p className="text-gray-700 font-medium">Result-cum-Detailed Marks Card {year}</p>
+          <p className="text-gray-700 font-medium">Result-cum-Detailed Marks Card {displayYear}</p>
         </div>
       </div>
 
@@ -207,7 +215,7 @@ function MarksCardView({ card, year }: { card: MarksCard; year: number }) {
             <span className="text-gray-600">Controller of Examinations</span>
           </div>
         </div>
-        <p className="text-xs text-gray-500 pt-2">Dated {new Date().toLocaleString('en-IN', { month: 'short', year: 'numeric' }).toUpperCase()}</p>
+        <p className="text-xs text-gray-500 pt-2">Dated {displayMonth} {displayYear}</p>
       </div>
     </div>
   );

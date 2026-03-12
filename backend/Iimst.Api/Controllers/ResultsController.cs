@@ -71,6 +71,7 @@ public class ResultsController : ControllerBase
             SubjectName = subjectMap.GetValueOrDefault(r.SubjectId)?.Name ?? r.SubjectId,
             Semester = r.Semester,
             SemesterRoman = RomanHelper.ToRoman(r.Semester),
+            Year = r.Year,
             MarksObtained = r.MarksObtained,
             Grade = r.Grade,
             IsPassed = r.IsPassed
@@ -119,7 +120,7 @@ public class ResultsController : ControllerBase
         try
         {
             var marksList = dto.Marks.Select(m => (m.SubjectId, m.MarksObtained)).ToList();
-            var result = await _resultService.BulkInsertResultsAsync(dto.StudentId, dto.Semester, marksList);
+            var result = await _resultService.BulkInsertResultsAsync(dto.StudentId, dto.Semester, dto.Year, marksList);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -165,10 +166,12 @@ public class ResultsController : ControllerBase
         List<MarksCardRowDto> rows;
         decimal totalMax, totalPass, totalSecured;
         bool allPassed;
+        int? year = null;
         string? courseIdForName = null;
         if (results.Count > 0)
         {
             courseIdForName = student.CourseId;
+            year = results.FirstOrDefault()?.Year;
             var subjectIds = results.Select(r => r.SubjectId).Distinct().ToList();
             var subjects = await _db.Subjects.Find(s => subjectIds.Contains(s.Id)).ToListAsync();
             var subjectMap = subjects.ToDictionary(s => s.Id);
@@ -235,6 +238,7 @@ public class ResultsController : ControllerBase
             BranchName = branch?.Name,
             Semester = semester,
             SemesterRoman = RomanNumerals.ToRoman(semester),
+            Year = year,
             Rows = rows,
             TotalMaximumMarks = totalMax,
             TotalPassMarks = totalPass,
@@ -370,6 +374,7 @@ public class MarksCardDto
     public string? BranchName { get; set; }
     public int Semester { get; set; }
     public string SemesterRoman { get; set; } = "";
+    public int? Year { get; set; }
     public List<MarksCardRowDto> Rows { get; set; } = new();
     public decimal TotalMaximumMarks { get; set; }
     public decimal TotalPassMarks { get; set; }

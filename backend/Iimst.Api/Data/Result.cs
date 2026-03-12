@@ -10,6 +10,7 @@ public class Result
     public string StudentId { get; set; } = "";
     public string SubjectId { get; set; } = "";
     public int Semester { get; set; }
+    public int Year { get; set; } = DateTime.UtcNow.Year;
     public decimal MarksObtained { get; set; }
     public string? Grade { get; set; }
     public bool IsPassed { get; set; }

@@ -45,7 +45,7 @@ export default function PublicHeader() {
             <div className="flex flex-wrap items-center gap-6">
               <a href="tel:+918595229157" className="hover:text-iimst-orange-light transition-colors">+91 8595229157</a>
               <a href="mailto:info@iimst.co.in" className="hover:text-iimst-orange-light transition-colors">info@iimst.co.in</a>
-              <span className="hidden sm:inline text-gray-400">Mon - Sat: 6:00 AM - 6:00 PM</span>
+              <span className="hidden sm:inline text-gray-400">Mon - Sat: 10:00 AM - 6:00 PM</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-gray-400 hidden md:inline">Follow Us</span>
