@@ -25,9 +25,9 @@ function formatDob(dob: string | undefined): string {
   }
 }
 
-// Map semester to month: Odd semesters (1,3,5,7) → JULY; Even semesters (2,4,6,8) → JAN
+// Map semester to month: Odd semesters (1,3,5,7) → JAN; Even semesters (2,4,6,8) → JULY
 function getSemesterMonth(semester: number): string {
-  return semester % 2 === 1 ? 'JULY' : 'JAN';
+  return semester % 2 === 1 ? 'JAN' : 'JULY';
 }
 
 export default function StudentResultsPage() {
