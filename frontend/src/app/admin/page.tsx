@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import BackupButton from '@/components/admin/BackupButton';
 
 export default function AdminDashboard() {
   const links = [
@@ -12,6 +13,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+      <BackupButton />
       <div className="grid md:grid-cols-2 gap-4">
         {links.map((l) => (
           <Link

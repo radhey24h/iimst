@@ -7,17 +7,22 @@ name: iimst
 
 services:
   mongodb:
-    image: mongo:7.0
+    build:
+      context: .
+      dockerfile: docker/mongodb/Dockerfile
     container_name: iimst-mongodb
     restart: unless-stopped
     ports:
       - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_backup:/backup
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
       MONGO_INITDB_DATABASE: iimst
-    volumes:
-      - mongodb_data:/data/db
+      MONGO_DB_NAME: iimst
+      BACKUP_ROOT: /backup
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -37,10 +42,15 @@ services:
       ASPNETCORE_URLS: http://+:5000
       MongoDb__ConnectionString: mongodb://root:example@mongodb:27017/?authSource=admin
       MongoDb__DatabaseName: iimst
+      MongoBackup__RootPath: /backup
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
       Jwt__Key: IimstSecretKeyForJwtTokenGeneration2024!
       Jwt__Issuer: IimstApi
       Jwt__Audience: IimstPortal
       Cors__Origins: http://localhost:3110,http://127.0.0.1:3110
+    volumes:
+      - mongodb_backup:/backup
     expose:
       - "5000"
 
@@ -61,3 +71,4 @@ services:
 
 volumes:
   mongodb_data:
+  mongodb_backup:

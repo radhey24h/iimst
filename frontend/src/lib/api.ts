@@ -178,9 +178,21 @@ export type ExamAttempt = {
   attemptedAt: string;
 };
 export type User = { id: string; userName: string; email: string; role: string; createdAt: string };
+export type AdminBackupResponse = {
+  message: string;
+  backupDir: string;
+  durationSeconds: string;
+  backupSize: string;
+};
 
 export function getBranchesByCourse(courseId: string) {
   return api<Branch[]>(`/branches?courseId=${encodeURIComponent(courseId)}`);
+}
+
+export function triggerAdminBackup() {
+  return api<AdminBackupResponse>('/admin/backup', {
+    method: 'POST',
+  });
 }
 
 /** Update student (e.g. photo). Students can only update their own record. */
