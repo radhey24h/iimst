@@ -16,7 +16,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      - mongodb_backup:/backup
+      - ./backup:/backup
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
@@ -50,7 +50,7 @@ services:
       Jwt__Audience: IimstPortal
       Cors__Origins: http://localhost:3110,http://127.0.0.1:3110
     volumes:
-      - mongodb_backup:/backup
+      - ./backup:/backup
     expose:
       - "5000"
 
@@ -71,4 +71,3 @@ services:
 
 volumes:
   mongodb_data:
-  mongodb_backup:

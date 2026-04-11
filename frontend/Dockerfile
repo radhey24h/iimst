@@ -28,39 +28,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Nginx: listen 3110, proxy / to Next.js and /api, /swagger to backend
-RUN echo 'server { \
-  listen 3110; \
-  location / { \
-    proxy_pass http://127.0.0.1:3000; \
-    proxy_http_version 1.1; \
-    proxy_set_header Host $host; \
-    proxy_set_header X-Real-IP $remote_addr; \
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-    proxy_set_header X-Forwarded-Proto $scheme; \
-    proxy_set_header Upgrade $http_upgrade; \
-    proxy_set_header Connection "upgrade"; \
-  } \
-  location /api/ { \
-    proxy_pass http://backend:5000/api/; \
-    proxy_http_version 1.1; \
-    proxy_set_header Host $host; \
-    proxy_set_header X-Real-IP $remote_addr; \
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-    proxy_set_header X-Forwarded-Proto $scheme; \
-    proxy_connect_timeout 60s; \
-    proxy_send_timeout 60s; \
-    proxy_read_timeout 60s; \
-  } \
-  location /swagger { \
-    proxy_pass http://backend:5000/swagger; \
-    proxy_http_version 1.1; \
-    proxy_set_header Host $host; \
-    proxy_set_header X-Real-IP $remote_addr; \
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-    proxy_set_header X-Forwarded-Proto $scheme; \
-  } \
-}' > /etc/nginx/conf.d/default.conf
+# Nginx: listen 3110, proxy / to Next.js and /api, /swagger to backend (see nginx/default.conf)
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3110
 
