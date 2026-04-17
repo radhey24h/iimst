@@ -7,16 +7,18 @@ name: iimst
 
 services:
   mongodb:
-    build:
-      context: .
-      dockerfile: docker/mongodb/Dockerfile
+    image: mongo:7.0
     container_name: iimst-mongodb
     restart: unless-stopped
+    entrypoint: ["/usr/local/bin/mongo-entrypoint.sh"]
+    command: ["mongod"]
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - ./backup:/backup
+      - ./docker/mongodb/mongo-entrypoint.sh:/usr/local/bin/mongo-entrypoint.sh
+      - ./docker/mongodb/restore-latest.sh:/usr/local/bin/restore-latest.sh
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example

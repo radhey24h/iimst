@@ -11,8 +11,8 @@ const slides = [
     description: 'Flexible learning options designed to fit your schedule while advancing your career goals.',
     cta: { text: 'Explore Programs', link: '/courses' },
     ctaSecondary: { text: 'Student Login', link: '/login' },
-    bgGradient: 'from-blue-900 via-blue-800 to-indigo-900',
-    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1920&q=80',
+    bgGradient: 'from-blue-900/70 via-blue-800/60 to-indigo-900/70',
+    image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1920&q=80',
   },
   {
     id: 2,
@@ -21,8 +21,8 @@ const slides = [
     description: 'Comprehensive curriculum covering finance, marketing, HR, operations and strategic management.',
     cta: { text: 'View MBA Programs', link: '/courses#management' },
     ctaSecondary: { text: 'Contact Us', link: '/contact' },
-    bgGradient: 'from-purple-900 via-purple-800 to-pink-900',
-    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1920&q=80',
+    bgGradient: 'from-purple-900/70 via-purple-800/60 to-pink-900/70',
+    image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&q=80',
   },
   {
     id: 3,
@@ -31,58 +31,18 @@ const slides = [
     description: 'Balance your work and studies with our flexible distance education programs and online support.',
     cta: { text: 'Learn More', link: '/courses' },
     ctaSecondary: { text: 'Admission Info', link: '/contact' },
-    bgGradient: 'from-teal-900 via-teal-800 to-cyan-900',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1920&q=80',
+    bgGradient: 'from-teal-900/70 via-teal-800/60 to-cyan-900/70',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&q=80',
   },
   {
     id: 4,
-    title: 'Skill-Based Diploma Programs',
-    subtitle: 'Short-term diplomas for rapid skill development',
-    description: 'Six-month and one-year programs in management, IT, technical and professional streams.',
-    cta: { text: 'Browse Diplomas', link: '/courses#diploma' },
-    ctaSecondary: { text: 'Get Started', link: '/contact' },
-    bgGradient: 'from-orange-900 via-red-800 to-pink-900',
-    image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&q=80',
-  },
-  {
-    id: 5,
-    title: 'Digital Student Portal',
-    subtitle: 'Your academic journey, all in one place',
-    description: 'Access your digital ID card, exam results, online tests and study materials from anywhere.',
-    cta: { text: 'Portal Login', link: '/login' },
-    ctaSecondary: { text: 'Learn More', link: '/about' },
-    bgGradient: 'from-gray-900 via-slate-800 to-blue-900',
-    image: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=1920&q=80',
-  },
-  {
-    id: 6,
-    title: '15+ Years of Educational Excellence',
-    subtitle: 'Trusted by over 2,000 students across India',
-    description: 'Dedicated to empowering professionals with quality education and skill development.',
-    cta: { text: 'Our Story', link: '/about' },
-    ctaSecondary: { text: 'View Courses', link: '/courses' },
-    bgGradient: 'from-emerald-900 via-green-800 to-teal-900',
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1920&q=80',
-  },
-  {
-    id: 7,
-    title: 'Professional Certification Programs',
-    subtitle: 'Upskill with industry-recognized certifications',
-    description: 'Enhance your expertise with specialized programs in business, technology and management.',
-    cta: { text: 'View Certifications', link: '/courses' },
-    ctaSecondary: { text: 'Enquire Now', link: '/contact' },
-    bgGradient: 'from-rose-900 via-red-800 to-orange-900',
-    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1920&q=80',
-  },
-  {
-    id: 8,
     title: 'Admissions Open 2025-26',
     subtitle: 'Enroll now for the upcoming academic session',
     description: 'Limited seats available. Start your journey towards professional excellence today.',
     cta: { text: 'Apply Now', link: '/contact' },
     ctaSecondary: { text: 'Course Catalog', link: '/courses' },
-    bgGradient: 'from-violet-900 via-purple-800 to-fuchsia-900',
-    image: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1920&q=80',
+    bgGradient: 'from-orange-900/70 via-red-800/60 to-pink-900/70',
+    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=80',
   },
 ];
 
@@ -128,7 +88,7 @@ export default function HeroCarousel() {
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: `url(${slide.image})` }}
           >
-            <div className={`absolute inset-0 bg-gradient-to-r ${slide.bgGradient} opacity-90`} />
+            <div className={`absolute inset-0 bg-gradient-to-r ${slide.bgGradient}`} />
           </div>
 
           {/* Content */}
