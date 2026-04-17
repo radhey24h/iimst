@@ -70,12 +70,12 @@ export default function HomePage() {
           <div className="container mx-auto max-w-7xl">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative h-72 lg:h-96 rounded-2xl overflow-hidden shadow-xl order-2 lg:order-1">
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: "url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80')" }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                </div>
+                <img
+                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80"
+                  alt="IIMST Campus - Education Excellence"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 <div className="relative text-white p-8 flex flex-col justify-end h-full">
                   <h3 className="text-3xl font-bold mb-2">Education Excellence</h3>
                   <p className="text-white/90 text-lg">Building Futures Through Learning</p>
@@ -106,7 +106,7 @@ export default function HomePage() {
               {courses.map((c) => (
                 <Link key={c.href} href={c.href} className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-iimst-orange/50 transition-all">
                   <div className="relative h-44 overflow-hidden">
-                    <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundImage: `url(${c.image})` }} />
+                    <img src={c.image} alt={c.title} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
                   </div>
                   <div className="p-6">
