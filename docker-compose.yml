@@ -7,10 +7,10 @@ name: iimst
 
 services:
   mongodb:
-    image: mongo:7.0
+    image: mongo:latest
     container_name: iimst-mongodb
     restart: unless-stopped
-    entrypoint: ["/usr/local/bin/mongo-entrypoint.sh"]
+    entrypoint: ["bash", "/usr/local/bin/mongo-entrypoint.sh"]
     command: ["mongod"]
     ports:
       - "27017:27017"
