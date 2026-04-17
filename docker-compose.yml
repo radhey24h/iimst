@@ -26,10 +26,11 @@ services:
       MONGO_DB_NAME: iimst
       BACKUP_ROOT: /backup
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "mongodb://root:example@localhost:27017/admin", "--quiet", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   backend:
     build:
