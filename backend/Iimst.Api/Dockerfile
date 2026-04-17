@@ -15,7 +15,7 @@ EXPOSE 5000
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends bash wget ca-certificates tar libgssapi-krb5-2 \
-    && wget -qO- https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian12-x86_64-100.13.0.tgz \
+    && wget -qO- https://fastdl.mongodb.org/tools/db/mongodb-database-tools-debian12-x86_64-100.16.0.tgz \
         | tar -xz -C /tmp \
     && cp /tmp/mongodb-database-tools-*/bin/mongodump /usr/local/bin/mongodump \
     && cp /tmp/mongodb-database-tools-*/bin/mongorestore /usr/local/bin/mongorestore \
