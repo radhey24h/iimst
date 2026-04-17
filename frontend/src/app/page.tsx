@@ -15,9 +15,9 @@ export default function HomePage() {
   ];
 
   const courses = [
-    { title: 'Management Programs', desc: 'BBA, MBA, PGDM and executive diplomas for leadership and business careers.', href: '/courses#management', gradient: 'from-orange-500 to-red-500', icon: '💼' },
-    { title: 'Diploma Programs', desc: 'Six-month and one-year diplomas in management, IT and skill-based streams.', href: '/courses#diploma', gradient: 'from-blue-500 to-cyan-500', icon: '🎓' },
-    { title: 'Technical Programs', desc: 'Diploma and certification programs in engineering and computer applications.', href: '/courses', gradient: 'from-purple-500 to-pink-500', icon: '💻' },
+    { title: 'Management Programs', desc: 'BBA, MBA, PGDM and executive diplomas for leadership and business careers.', href: '/courses#management', image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80' },
+    { title: 'Diploma Programs', desc: 'Six-month and one-year diplomas in management, IT and skill-based streams.', href: '/courses#diploma', image: 'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?w=800&q=80' },
+    { title: 'Technical Programs', desc: 'Diploma and certification programs in engineering and computer applications.', href: '/courses', image: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=800&q=80' },
   ];
 
   const whyChoose = [
@@ -70,14 +70,13 @@ export default function HomePage() {
           <div className="container mx-auto max-w-7xl">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative h-72 lg:h-96 rounded-2xl overflow-hidden shadow-xl order-2 lg:order-1">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500"></div>
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC41IiBvcGFjaXR5PSIwLjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
-                <div className="relative text-center text-white p-8 flex flex-col items-center justify-center h-full">
-                  <div className="w-28 h-28 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-6 shadow-2xl">
-                    <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                    </svg>
-                  </div>
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: "url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80')" }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                </div>
+                <div className="relative text-white p-8 flex flex-col justify-end h-full">
                   <h3 className="text-3xl font-bold mb-2">Education Excellence</h3>
                   <p className="text-white/90 text-lg">Building Futures Through Learning</p>
                 </div>
@@ -106,8 +105,9 @@ export default function HomePage() {
             <div className="grid md:grid-cols-3 gap-8">
               {courses.map((c) => (
                 <Link key={c.href} href={c.href} className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-iimst-orange/50 transition-all">
-                  <div className={`relative h-44 bg-gradient-to-br ${c.gradient} flex items-center justify-center`}>
-                    <span className="text-6xl group-hover:scale-110 transition-transform duration-300">{c.icon}</span>
+                  <div className="relative h-44 overflow-hidden">
+                    <div className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110" style={{ backgroundImage: `url(${c.image})` }} />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
                   </div>
                   <div className="p-6">
                     <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-iimst-orange transition-colors">{c.title}</h3>
