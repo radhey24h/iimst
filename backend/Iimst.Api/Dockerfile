@@ -13,13 +13,12 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 EXPOSE 5000
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends bash wget ca-certificates tar libgssapi-krb5-2 \
-    && wget -qO- https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.16.0.tgz \
-        | tar -xz -C /tmp \
+# Download MongoDB tools without apt-get (avoids archive.ubuntu.com connectivity issues)
+ADD https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2404-x86_64-100.16.0.tgz /tmp/mongodb-tools.tgz
+RUN tar -xzf /tmp/mongodb-tools.tgz -C /tmp \
     && cp /tmp/mongodb-database-tools-*/bin/mongodump /usr/local/bin/mongodump \
     && cp /tmp/mongodb-database-tools-*/bin/mongorestore /usr/local/bin/mongorestore \
-    && rm -rf /var/lib/apt/lists/* /tmp/mongodb-database-tools-*
+    && rm -rf /tmp/mongodb-*
 
 COPY --from=build /app/publish ./
 COPY scripts ./scripts
