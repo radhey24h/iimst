@@ -8,25 +8,21 @@ RUN dotnet restore
 COPY . ./
 RUN dotnet publish -c Release -o /app/publish --no-restore
 
-# Tools stage: download mongodump/mongorestore (distro-agnostic, arch-aware)
-FROM alpine:latest AS tools
-RUN apk add --no-cache wget tar \
-    && ARCH=$(uname -m) \
-    && if [ "$ARCH" = "aarch64" ]; then ARCH="arm64"; fi \
-    && wget -qO /tmp/tools.tgz \
-       "https://fastdl.mongodb.org/tools/db/mongodb-database-tools-linux-${ARCH}-100.16.0.tgz" \
-    && tar -xzf /tmp/tools.tgz -C /tmp \
-    && mv /tmp/mongodb-database-tools-*/bin/mongodump /usr/local/bin/ \
-    && mv /tmp/mongodb-database-tools-*/bin/mongorestore /usr/local/bin/ \
-    && rm -rf /tmp/*
+# Tools stage: install mongodump/mongorestore from the MongoDB APT repo (already in mongo image)
+FROM mongo:8.0 AS tools
+RUN rm -f /etc/apt/sources.list; \
+    find /etc/apt/sources.list.d/ -type f ! -name '*mongo*' -delete 2>/dev/null; \
+    apt-get update \
+    && apt-get install -y --no-install-recommends mongodb-database-tools \
+    && rm -rf /var/lib/apt/lists/*
 
 # Run stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 EXPOSE 5000
 
-COPY --from=tools /usr/local/bin/mongodump /usr/local/bin/mongodump
-COPY --from=tools /usr/local/bin/mongorestore /usr/local/bin/mongorestore
+COPY --from=tools /usr/bin/mongodump /usr/local/bin/mongodump
+COPY --from=tools /usr/bin/mongorestore /usr/local/bin/mongorestore
 
 COPY --from=build /app/publish ./
 COPY scripts ./scripts
