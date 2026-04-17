@@ -42,7 +42,7 @@ const slides = [
     cta: { text: 'Apply Now', link: '/contact' },
     ctaSecondary: { text: 'Course Catalog', link: '/courses' },
     bgGradient: 'from-orange-900/70 via-red-800/60 to-pink-900/70',
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1920&q=80',
+    image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=1920&q=80',
   },
   {
     id: 5,

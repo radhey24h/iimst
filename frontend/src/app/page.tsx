@@ -71,7 +71,7 @@ export default function HomePage() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative h-72 lg:h-96 rounded-2xl overflow-hidden shadow-xl order-2 lg:order-1">
                 <img
-                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80"
+                  src="https://images.unsplash.com/photo-1562774053-701939374585?w=1200&q=80"
                   alt="IIMST Campus - Education Excellence"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
