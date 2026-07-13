@@ -21,6 +21,14 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 EXPOSE 5000
 
+# Install shared-library dependencies required by mongodump/mongorestore
+# (libgssapi-krb5-2 pulls in libkrb5-3, libk5crypto3, libkrb5support0, libcom-err2)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       libgssapi-krb5-2 \
+       libssl3 \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=tools /usr/bin/mongodump /usr/local/bin/mongodump
 COPY --from=tools /usr/bin/mongorestore /usr/local/bin/mongorestore
 
